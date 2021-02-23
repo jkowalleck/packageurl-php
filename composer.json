@@ -1,0 +1,63 @@
+{
+    "name": "package-url/packageurl-php",
+    "description": "PHP implementation of the package url spec",
+    "readme": "README.md",
+    "keywords": ["ackageurl", "purl"],
+    "license": "MIT",
+    "homepage": "https://github.com/package-url/packageurl-php",
+    "support": {
+        "issues": "https://github.com/package-url/packageurl-php/issues"
+    },
+    "authors": [
+        {
+            "name": "jowalleck",
+            "role": "Developer"
+        }
+    ],
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "require": {
+        "php": "^7.3 || ^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "PackageUrl\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PackageUrl\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test:psalm": "@php tools/psalm" ,
+        "test:phpunit": "phpunit",
+        "test:cs-fixer": "@php tools/php-cs-fixer fix --dry-run --diff-format=udiff",
+        "test:composer-require-checker": "@php tools/composer-require-checker",
+        "test:composer-unused": "@php tools/composer-unused",
+        "test": [
+            "@composer validate",
+            "@test:psalm",
+            "@test:phpunit",
+            "@test:cs-fixer",
+            "@test:composer-require-checker",
+            "@test:composer-unused"
+        ],
+        "cs-fix": "@php tools/php-cs-fixer fix --diff-format=udiff"
+    },
+    "scripts-descriptions": {
+        "test": "Run all tests!",
+        "test:psalm": "Run static code analysis with Psalm.",
+        "test:phpunit": "Run tests with PHPUnit.",
+        "test:cs-fixer": "Test coding standards with PHP-CS-fixer.",
+        "test:composer-require-checker": "Test compoer requirements with composer-require-checker.",
+        "test:composer-unused": "Test compoer requirements with composer-unused.",
+        "cs-fix": "Fix files according to coding standards."
+    }
+}

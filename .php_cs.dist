@@ -1,0 +1,35 @@
+<?php declare(strict_types=1);
+
+$header = <<<'EOHH'
+Copyright (c) the purl authors
+SPDX-License-Identifier: MIT
+
+EOHH .
+    file_get_contents(__DIR__.'/README.md') .
+    <<<'OEHF'
+
+Visit https://github.com/package-url/packageurl-php
+for support and download.
+OEHF;
+
+
+$finder = PhpCsFixer\Finder::create()
+    ->in(__DIR__.'/src')
+    ->in(__DIR__.'/tests')
+    ->append(__FILE__)
+;
+
+$config = new PhpCsFixer\Config();
+
+return $config
+    ->setUsingCache(true)
+    ->setRules([
+        '@PHP73Migration' => true,
+        '@Symfony' => true,
+        'declare_strict_types' => true,
+        'phpdoc_order' => true,
+        'header_comment' => ['header' => $header],
+    ])
+    ->setRiskyAllowed(true)
+    ->setFinder($finder)
+;
