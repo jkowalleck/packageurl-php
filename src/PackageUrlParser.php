@@ -48,38 +48,6 @@ final class PackageUrlParser {
         ];
     }
 
-    private function normalizeScheme(string $string): string {
-        return strtolower($string);
-    }
-
-    private function normalizeType(string $string): string {
-        return $string;
-    }
-
-    private function normalizeNamespace(string $string): string {
-        return $string;
-    }
-
-    private function normalizeName(string $string): string {
-        return $string;
-    }
-
-    /**
-     * @psalm-return TPUrlVersion
-     */
-    private function normalizeVersion(string $string): string {
-        return $string;
-    }
-
-    private function normalizeQualifiers(string $string): array {
-        return ['TPUrlODO' => $string];
-    }
-
-
-    public function normalizeSubpath(string $string): ?string {
-        return '' === $string ? null : $string;
-    }
-
     private function parseTypeNamespaceNameVersion (string $string): array {
         $string = trim($string, '/');
 
@@ -102,70 +70,31 @@ final class PackageUrlParser {
         $rightSlashPos = strrpos($string, '@');
         if (false === $rightSlashPos) {
             $name = '';
+            $namespace = '';
         } else {
             $name = substr($string, $rightSlashPos+1);
-            $string = substr($string, 0, $rightSlashPos);
+            $namespace = substr($string, 0, $rightSlashPos);
         }
 
-        $nameSpaces = explode('/', $string);
-
-        $namespace = $string;
         return [$type, $namespace, $name, $version];
     }
 
-    /*
-    private function foo ()
+    public function urldecodePath (string $subpath) : string
     {
-        $this->normalizeScheme($parts['scheme'] ?? '<MISSING>');
-        if (PackageUrl::SCHEME !== $scheme) {
-            throw new  DomainException("invalid scheme: ${$scheme}");
-        }
-
-        '<MISSING>'
-        if (PackageUrl::SCHEME !== $scheme) {
-            throw new DomainException("invalid schema: {$scheme}");
-        }
-
-        if (false === isset($parts['path'])) {
-            throw new DomainException('missing path');
-        }
-        $partsPath = explode('@', $parts['path']);
-        switch (count($partsPath)) {
-            case 1:
-                [$typeNamespaceName, $version] = [$partsPath[0], null];
-                break;
-            case 2:
-                [$typeNamespaceName, $version] = $partsPath;
-                break;
-            default:
-                throw new DomainException('malformed: type/?namespace/type@?version');
-        }
-        if ('' === $version) {
-            $version = null;
-        }
-
-        $partsTypeNamespaceName = explode('/', $typeNamespaceName);
-        switch (count($partsTypeNamespaceName)) {
-            case 2:
-                [$type, $namespace, $name] = [$partsTypeNamespaceName[0], null, $partsTypeNamespaceName[1]];
-                break;
-            case 3:
-                [$type, $namespace, $name] = $partsTypeNamespaceName;
-                break;
-            default:
-                throw new DomainException('malformed: type/namespace?/type');
-        }
-
-        $qualifiers = [];
-        if (isset($parts['query'])) {
-            parse_str($parts['query'], $qualifiers);
-        }
-
-        $subpath = $parts['fragment'] ?? '';
-        if ('' === $subpath) {
-            $subpath = null;
-        }
+        return implode(
+            '/',
+            array_map(
+                static function (string $part): string {
+                    return rawurlencode($part);
+                },
+                array_filter(
+                    explode('/', trim($subpath, '/')),
+                    static function (string $part): bool {
+                        return false !== in_array($part, ['', '.', '..'], true);
+                    }
+                )
+            )
+        );
     }
-    */
 
 }

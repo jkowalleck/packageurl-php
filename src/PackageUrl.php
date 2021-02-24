@@ -192,7 +192,7 @@ class PackageUrl
     }
 
 
-    // region getters/setters
+    // endregion getters/setters
 
     /**
      * @psalm-param array-key $key
@@ -244,17 +244,16 @@ class PackageUrl
             '/'.rawurlencode($this->name).
             (null === $this->version ? '' : '@'.rawurlencode($this->version)).
             (0 === count($this->qualifiers) ? '' : '?'.http_build_query($this->qualifiers)). // $TODO see specs
-            (null === $this->subpath ? '' : '#'.$this->subpath)
-            ;
+            (null === $this->subpath ? '' : '#'.$this->subpath);
     }
 
     /**
      * @throws DomainException if the data is invalid according to the specification
      * @psalm-return PackageUrl|null null when empty string is passed
      */
-    public static function fromString(string $data, ?PackageUrlParser $parser=null): ?self
+    public static function fromString(string $data, ?PackageUrlParser $parser = null): ?self
     {
-        if ( '' === $data ) {
+        if ('' === $data) {
             return null;
         }
 
@@ -271,8 +270,7 @@ class PackageUrl
             ->setNamespace($namespace)
             ->setVersion($version)
             ->setQualifiers($qualifiers)
-            ->setSubpath($subpath)
-        ;
+            ->setSubpath($subpath);
     }
 
 }
