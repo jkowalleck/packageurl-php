@@ -17,7 +17,8 @@ use DomainException;
  * @psalm-import-type TPUrlQualifiers from PackageUrl
  * @psalm-import-type TPUrlSubpath from PackageUrl
  */
-final class PackageUrlParser {
+final class PackageUrlParser
+{
 
     /**
      * @psalm-param non-empty-string $data
@@ -46,7 +47,8 @@ final class PackageUrlParser {
         ];
     }
 
-    private function parseTypeNamespaceNameVersion (string $string): array {
+    private function parseTypeNamespaceNameVersion(string $string): array
+    {
         $string = trim($string, '/');
 
         $leftSlashPos = strpos($string, '/');
@@ -54,14 +56,14 @@ final class PackageUrlParser {
             $type = '';
         } else {
             $type = substr($string, 0, $leftSlashPos);
-            $string = substr($string, $leftSlashPos+1);
+            $string = substr($string, $leftSlashPos + 1);
         }
 
         $rightAtPos = strrpos($string, '@');
         if (false === $rightAtPos) {
             $version = '';
         } else {
-            $version = substr($string, $rightAtPos+1);
+            $version = substr($string, $rightAtPos + 1);
             $string = substr($string, 0, $rightAtPos);
         }
 
@@ -70,7 +72,7 @@ final class PackageUrlParser {
             $name = '';
             $namespace = '';
         } else {
-            $name = substr($string, $rightSlashPos+1);
+            $name = substr($string, $rightSlashPos + 1);
             $namespace = substr($string, 0, $rightSlashPos);
         }
 
@@ -80,7 +82,7 @@ final class PackageUrlParser {
     /**
      * @TODO pretty much unoptimized. some parts may be done by the model.
      */
-    public function urldecodePath (string $subpath) : string
+    public function urldecodePath(string $subpath): string
     {
         return implode(
             '/',
@@ -90,7 +92,10 @@ final class PackageUrlParser {
                     return rawurlencode($part);
                 },
                 array_filter(
-                    explode('/', trim($subpath, '/')),
+                    explode(
+                        '/',
+                        trim($subpath, '/')
+                    ),
                     static function (string $part): bool {
                         return false !== in_array($part, ['', '.', '..'], true);
                     }
