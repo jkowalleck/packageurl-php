@@ -2,36 +2,19 @@
 
 declare(strict_types=1);
 
-/*
- * This file is part of the CycloneDX PHP Composer Plugin.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
- * Copyright (c) Steve Springett. All Rights Reserved.
- */
 
-namespace CycloneDX\Tests\_data;
+namespace PackageUrl\Tests\_data;
 
-use CycloneDX\Models\PackageUrl;
 use Generator;
+use PackageUrl\PackageUrl;
 
 abstract class PackageUrlProvider
 {
     public static function parserSpecials(): Generator
     {
         yield 'schemaDoubleSlash' => [
-            'pkg://gem/ruby-advisory-db-check@0.12.4', (
+            'pkg://gem/ruby-advisory-db-check@0.12.4',
+            (
             new PackageUrl('gem', 'ruby-advisory-db-check'))
                 ->setVersion('0.12.4'),
         ];
@@ -60,13 +43,11 @@ abstract class PackageUrlProvider
                 ->setVersion('7.50.3-1')
                 ->setQualifiers(['arch' => 'i386', 'distro' => 'jessie']),
 
-            /* modified as of https://github.com/package-url/purl-spec/pull/98 */
-            'pkg:docker/cassandra@sha256%3A244fd47e07d1004f0aed9c' => (
+            'pkg:docker/cassandra@sha256:244fd47e07d1004f0aed9c' => (
             new PackageUrl('docker', 'cassandra'))
                 ->setVersion('sha256:244fd47e07d1004f0aed9c'),
 
-            /* modified as of https://github.com/package-url/purl-spec/pull/98 */
-            'pkg:docker/customer/dockerimage@sha256%3A244fd47e07d1004f0aed9c?repository_url=gcr.io' => (
+            'pkg:docker/customer/dockerimage@sha256:244fd47e07d1004f0aed9c?repository_url=gcr.io' => (
             new PackageUrl('docker', 'dockerimage'))
                 ->setNamespace('customer')
                 ->setVersion('sha256:244fd47e07d1004f0aed9c')
@@ -79,7 +60,7 @@ abstract class PackageUrlProvider
 
             'pkg:gem/ruby-advisory-db-check@0.12.4' => (
             new PackageUrl('gem', 'ruby-advisory-db-check'))
-            ->setVersion('0.12.4'),
+                ->setVersion('0.12.4'),
 
             'pkg:github/package-url/purl-spec@244fd47e07d1004f0aed9c' => (
             new PackageUrl('github', 'purl-spec'))
@@ -96,8 +77,7 @@ abstract class PackageUrlProvider
                 ->setVersion('1.9.1')
                 ->setQualifiers(['packaging' => 'sources']),
 
-            /* modified as of https://github.com/package-url/purl-spec/pull/99 */
-            'pkg:maven/org.apache.xmlgraphics/batik-anim@1.9.1?repository_url=repo.spring.io%2Frelease' => (
+            'pkg:maven/org.apache.xmlgraphics/batik-anim@1.9.1?repository_url=repo.spring.io/release' => (
             new PackageUrl('maven', 'batik-anim'))
                 ->setNamespace('org.apache.xmlgraphics')
                 ->setVersion('1.9.1')
