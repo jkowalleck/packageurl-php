@@ -67,9 +67,9 @@ final class PackageUrlParser
             $string = substr($string, 0, $rightAtPos);
         }
 
-        $rightSlashPos = strrpos($string, '@');
+        $rightSlashPos = strrpos($string, '/');
         if (false === $rightSlashPos) {
-            $name = '';
+            $name = $string;
             $namespace = '';
         } else {
             $name = substr($string, $rightSlashPos + 1);
