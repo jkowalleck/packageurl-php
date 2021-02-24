@@ -169,14 +169,12 @@ class PackageUrlParser
      */
     public function normalizeQualifiers(string $data): array
     {
+        $qualifiers = [];
         if ('' === $data) {
-            return [];
+            return $qualifiers;
         }
 
-        $qualifiers = [];
-
-        $dataKeysValues = explode('&', $data);
-        foreach ($dataKeysValues as $dataKeyValue) {
+        foreach (explode('&', $data) as $dataKeyValue) {
             $eqPos = strpos($dataKeyValue, '=');
             if (false === $eqPos || 0 === $eqPos) {
                 continue;
@@ -191,7 +189,6 @@ class PackageUrlParser
             }
             $qualifiers[$key] = $value;
         }
-        unset($dataKeyValue);
 
         return $qualifiers;
     }
