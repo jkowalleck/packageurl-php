@@ -17,6 +17,8 @@ use Generator;
  */
 class PackageUrlParserTest extends TestCase {
 
+    // region parseTypeNamespaceNameVersion
+
     /**
      * @dataProvider dpTypeNamespaceNameVersion
      *
@@ -37,7 +39,7 @@ class PackageUrlParserTest extends TestCase {
     /**
      * @psalm-return Generator<string, array{string, TParsedTypeNamespaceNameVersion}>
      */
-    public function dpTypeNamespaceNameVersion(): Generator {
+    public static function dpTypeNamespaceNameVersion(): Generator {
         yield 'empty' => ['', ['','','','']];
         yield 'type' => ['someType', ['someType','','','']];
         yield 'type, name' => ['someType/someName', ['someType','','someName','']];
@@ -46,4 +48,40 @@ class PackageUrlParserTest extends TestCase {
         yield 'type, name/space, name' => ['someType/some/Name/space/someName', ['someType','some/Name/space','someName','']];
         yield 'type, namespace, name, version' => ['someType/someNamespace/someName@someVersion', ['someType','someNamespace','someName','someVersion']];
     }
+
+    // endregion parseTypeNamespaceNameVersion
+
+    // region urldecodePath
+
+
+    /**
+     * @dataProvider dpUrldecodePath
+     */
+    public function testUrldecodePath(string $input, string $expectedOutcome): void
+    {
+        $parser = new PackageUrlParser();
+
+        $decoded = $parser->urldecodePath($input);
+
+        self::assertSame($expectedOutcome, $decoded);
+    }
+
+    /**
+     * @psalm-return Generator<string, array{string, string}>
+     */
+    public static function dpUrldecodePath(): Generator {
+        yield 'empty' => ['', ''];
+        yield 'dot' => ['.', ''];
+        yield 'dot dot' => ['..', ''];
+        yield 'path' => ['path','path'];
+        yield 'some/path' => ['some/path','some/path'];
+        yield 'surrounding slashes' => ['/path//', 'path'];
+        yield 'inner slashes' => ['some//path/', 'some/path'];
+        yield 'encoded' => ['some%20path/', 'some path'];
+        yield 'complex' => ['//foo/./bar/..//baz%20oof/', 'foo/bar/baz oof'];
+
+    }
+
+    //endregion urldecodePath
+
 }

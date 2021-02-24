@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PackageUrl;
 
 use DomainException;
+use phpDocumentor\Reflection\Types\Static_;
 
 /**
  * A purl is a package URL as defined at
@@ -93,24 +94,19 @@ class PackageUrlParser
      */
     public function urldecodePath(string $subpath): string
     {
-        return implode(
-            '/',
-            array_map(
-                static function (string $part): string {
-                    // utf8 encode transcode was left out for now, most php is running is utf8 already
-                    return rawurlencode($part);
-                },
-                array_filter(
-                    explode(
-                        '/',
-                        trim($subpath, '/')
-                    ),
-                    static function (string $part): bool {
-                        return false !== in_array($part, ['', '.', '..'], true);
-                    }
-                )
-            )
+        $segments = explode('/', trim($subpath, '/'));
+        $segments = array_filter($segments, Static function (string $segment): bool {
+            return false === in_array($segment, ['', '.', '..'], true);
+        });
+        $segments = array_map(
+            static function (string $segment): string {
+                // utf8 encode transcode was left out for now, most php is running is utf8 already
+                return rawurldecode($segment);
+            },
+            $segments
         );
+
+        return implode('/', $segments);
     }
 
 }
