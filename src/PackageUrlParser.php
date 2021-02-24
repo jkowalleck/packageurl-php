@@ -103,15 +103,19 @@ class PackageUrlParser
 
     // region normalize
 
-    public function normalizeScheme(string $scheme): string {
-        return strtolower($scheme);
+    public function normalizeScheme(string $data): string {
+        return strtolower($data);
     }
 
     public function normalizeType(string $data): string {
         return strtolower($data);
     }
 
-    public function normalizeNamespace(string $data): string {
+    public function normalizeNamespace(string $data): ?string {
+        if ('' === $data) {
+            return null;
+        }
+
         $parts = explode('/', trim($data, '/'));
         $parts = array_map(
             static function (string $part): string {
@@ -121,7 +125,8 @@ class PackageUrlParser
             $parts
         );
 
-        return implode('/', $parts);
+        $namespace = implode('/', $parts);
+        return '' === $namespace ? null : $namespace;
     }
 
     public function normalizeName(string $data): string {
@@ -129,12 +134,27 @@ class PackageUrlParser
     }
 
     public function normalizeVersion(string $data): string {
+        if ('' === $data) {
+            return $data;
+        }
+
         return rawurldecode($data);
     }
 
+    /**
+     * @param string $data
+     * @return array
+     */
+    public function normalizeQualifiers(string $data): array {
+        return []; // @TODO
+    }
 
-    public function normalizeSubpath(string $data): string
+    public function normalizeSubpath(string $data): ?string
     {
+        if ('' === $data) {
+            return null;
+        }
+
         $parts = explode('/', trim($data, '/'));
         $parts = array_filter($parts, Static function (string $part): bool {
             return false === in_array($part, ['', '.', '..'], true);
@@ -147,7 +167,8 @@ class PackageUrlParser
             $parts
         );
 
-        return implode('/', $parts);
+        $subpath = implode('/', $parts);
+        return '' === $subpath ? null : $subpath;
     }
 
     // endregion normalize

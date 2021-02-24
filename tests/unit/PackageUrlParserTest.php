@@ -33,7 +33,7 @@ class PackageUrlParserTest extends TestCase
 
         $output = $parseTypeNamespaceNameVersion->invoke($parser, $input);
 
-        self::assertEquals($expectedOutput, $output);
+        self::assertSame($expectedOutput, $output);
     }
 
 
@@ -44,7 +44,7 @@ class PackageUrlParserTest extends TestCase
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeScheme($input);
-        self::assertEquals($expectedOutput, $normalized);
+        self::assertSame($expectedOutput, $normalized);
     }
 
     /**
@@ -54,18 +54,19 @@ class PackageUrlParserTest extends TestCase
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeType($input);
-        self::assertEquals($expectedOutput, $normalized);
+        self::assertSame($expectedOutput, $normalized);
     }
 
 
     /**
      * @dataProvider dpNormalizeNamespace
+     * @dataProvider dpStringsEmptyToNull
      */
-    public function testNormalizeNamespace(string $input, string $expectedOutput): void
+    public function testNormalizeNamespace(string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeNamespace($input);
-        self::assertEquals($expectedOutput, $normalized);
+        self::assertSame($expectedOutput, $normalized);
     }
 
     /**
@@ -80,8 +81,9 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpStringsToDecoded
+     * @dataProvider dpStringsEmptyToNull
      */
-    public function testNormalizeVersion(string $input, string $expectedOutput): void
+    public function testNormalizeVersion(string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeVersion($input);
@@ -89,9 +91,19 @@ class PackageUrlParserTest extends TestCase
     }
 
     /**
-     * @dataProvider dpNormalizeSubpath
+     * @dataProvider dpNormalizeQualifiers
+     * @dataProvider dpStringsEmptyToNull
      */
-    public function testNormalizeSubpath(string $input, string $expectedOutcome): void
+    public function testNormalizeQualifiers(string $input, array $expectedOutcome): void
+    {
+        self::markTestSkipped('nit implemented');
+    }
+
+    /**
+     * @dataProvider dpNormalizeSubpath
+     * @dataProvider dpStringsEmptyToNull
+     */
+    public function testNormalizeSubpath(string $input, ?string $expectedOutcome): void
     {
         $parser = new PackageUrlParser();
         $decoded = $parser->normalizeSubpath($input);
@@ -135,22 +147,28 @@ class PackageUrlParserTest extends TestCase
         yield 'encoded string' => ['some%20%22encoded%22%20string', 'some "encoded" string'];
     }
 
+    /**
+     * @psalm-return Generator<string, array{string, array<string, string>}>
+     */
+    public static function dpNormalizeQualifiers(): Generator
+    {
+        yield 'empty' => ['', []];
+    }
 
     /**
      * @psalm-return Generator<string, array{string, string}>
      */
     public static function dpNormalizeSubpath(): Generator
     {
-        yield 'empty' => ['', ''];
-        yield 'dot' => ['.', ''];
-        yield 'dot dot' => ['..', ''];
+        yield 'dot' => ['.', null];
+        yield 'dot dot' => ['..', null];
         yield 'path' => ['path', 'path'];
         yield 'some/path' => ['some/path', 'some/path'];
         yield 'surrounding slashes' => ['/path//', 'path'];
         yield 'inner slashes' => ['some//path/', 'some/path'];
         yield 'encoded' => ['some%20path/', 'some path'];
-        yield 'complex' => ['//foo/./bar/..//Baz%20ooF/', 'foo/bar/Baz ooF'];
-
+        yield 'complex' => ['//.foo/./bar./..//Baz%20ooF/', '.foo/bar./Baz ooF'];
+        yield 'dot complex' => ['/./..//./', null];
     }
 
     /**
@@ -161,6 +179,10 @@ class PackageUrlParserTest extends TestCase
         yield 'lowercase' => ['something', 'something'];
         yield 'UPPERCASE' => ['SOMETHING', 'something'];
         yield 'mIxeDCase' => ['sOmetHIng', 'something'];
+    }
+
+    public static function dpStringsEmptyToNull(): Generator {
+        yield 'empty' => ['', null];
     }
 
 }
