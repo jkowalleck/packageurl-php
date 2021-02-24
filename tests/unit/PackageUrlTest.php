@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PackageUrl\Tests;
+namespace PackageUrl\Tests\unit;
 
 use PackageUrl\PackageUrl;
 use PHPUnit\Framework\TestCase;

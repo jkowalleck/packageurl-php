@@ -16,8 +16,11 @@ use DomainException;
  * @psalm-import-type TPUrlVersion from PackageUrl
  * @psalm-import-type TPUrlQualifiers from PackageUrl
  * @psalm-import-type TPUrlSubpath from PackageUrl
+ *
+ * @psalm-type TParsed = array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
+ * @psalm-type TParsedTypeNamespaceNameVersion = array{string, string, string, string}
  */
-final class PackageUrlParser
+class PackageUrlParser
 {
 
     /**
@@ -25,7 +28,7 @@ final class PackageUrlParser
      *
      * @throws DomainException if scheme mismatches the specs
      *
-     * @psalm-return array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
+     * @psalm-return TParsed
      */
     public function parse(string $data): array
     {
@@ -47,34 +50,40 @@ final class PackageUrlParser
         ];
     }
 
+    /**
+     * @psalm-return TParsedTypeNamespaceNameVersion
+     */
     private function parseTypeNamespaceNameVersion(string $string): array
     {
         $string = trim($string, '/');
 
         $leftSlashPos = strpos($string, '/');
         if (false === $leftSlashPos) {
-            $type = '';
+            $type = $string;
+            $remainder = '';
         } else {
             $type = substr($string, 0, $leftSlashPos);
-            $string = substr($string, $leftSlashPos + 1);
+            $remainder = substr($string, $leftSlashPos + 1);
         }
 
-        $rightAtPos = strrpos($string, '@');
+        $rightAtPos = strrpos($remainder, '@');
         if (false === $rightAtPos) {
             $version = '';
         } else {
-            $version = substr($string, $rightAtPos + 1);
-            $string = substr($string, 0, $rightAtPos);
+            $version = substr($remainder, $rightAtPos + 1);
+            $remainder = substr($remainder, 0, $rightAtPos);
         }
 
-        $rightSlashPos = strrpos($string, '/');
+        $rightSlashPos = strrpos($remainder, '/');
         if (false === $rightSlashPos) {
-            $name = $string;
-            $namespace = '';
+            $name = $remainder;
+            $remainder = '';
         } else {
-            $name = substr($string, $rightSlashPos + 1);
-            $namespace = substr($string, 0, $rightSlashPos);
+            $name = substr($remainder, $rightSlashPos + 1);
+            $remainder = substr($remainder, 0, $rightSlashPos);
         }
+
+        $namespace = $remainder;
 
         return [$type, $namespace, $name, $version];
     }
