@@ -19,7 +19,6 @@ use phpDocumentor\Reflection\Types\Static_;
  * @psalm-import-type TPUrlSubpath from PackageUrl
  *
  * @psalm-type TParsed = array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
- * @psalm-type TParsedTypeNamespaceNameVersion = array{string, string, string, string}
  *
  * @author jkowalleck
  */
@@ -60,7 +59,7 @@ class PackageUrlParser
 
 
     /**
-     * @psalm-return TParsedTypeNamespaceNameVersion
+     * @psalm-return array{string, string, string, string}
      */
     private function parseTypeNamespaceNameVersion(string $string): array
     {
@@ -107,10 +106,16 @@ class PackageUrlParser
         return strtolower($data);
     }
 
+    /**
+     * @psalm-return TPUrlType|string
+     */
     public function normalizeType(string $data): string {
         return strtolower($data);
     }
 
+    /**
+     * @psalm-return TPUrlNamespace
+     */
     public function normalizeNamespace(string $data): ?string {
         if ('' === $data) {
             return null;
@@ -129,10 +134,16 @@ class PackageUrlParser
         return '' === $namespace ? null : $namespace;
     }
 
+    /**
+     * @psalm-return TPUrlName|string
+     */
     public function normalizeName(string $data): string {
         return rawurldecode($data);
     }
 
+    /**
+     * @psalm-return TPUrlVersion
+     */
     public function normalizeVersion(string $data): string {
         if ('' === $data) {
             return $data;
@@ -142,13 +153,15 @@ class PackageUrlParser
     }
 
     /**
-     * @param string $data
-     * @return array
+     * @psalm-return TPUrlQualifiers
      */
     public function normalizeQualifiers(string $data): array {
         return []; // @TODO
     }
 
+    /**
+     * @psalm-return TPUrlSubpath
+     */
     public function normalizeSubpath(string $data): ?string
     {
         if ('' === $data) {

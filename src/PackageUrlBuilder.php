@@ -24,7 +24,7 @@ class PackageUrlBuilder {
      * @psalm-param TPUrlNamespace $namespace
      * @psalm-param TPUrlName $name
      * @psalm-param TPUrlVersion $version
-     * @psalm-param string|null $qualifiers
+     * @psalm-param TPUrlQualifiers $qualifiers
      * @psalm-param TPUrlSubpath $subpath
      *
      * @psalm-return non-empty-string
