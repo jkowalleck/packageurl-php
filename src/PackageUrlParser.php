@@ -92,7 +92,7 @@ class PackageUrlParser
     /**
      * @TODO pretty much unoptimized. some parts may be done by the model.
      */
-    public function urldecodePath(string $subpath): string
+    public function normalizePath(string $subpath): string
     {
         $segments = explode('/', trim($subpath, '/'));
         $segments = array_filter($segments, Static function (string $segment): bool {

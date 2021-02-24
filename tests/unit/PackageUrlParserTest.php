@@ -61,7 +61,7 @@ class PackageUrlParserTest extends TestCase {
     {
         $parser = new PackageUrlParser();
 
-        $decoded = $parser->urldecodePath($input);
+        $decoded = $parser->normalizePath($input);
 
         self::assertSame($expectedOutcome, $decoded);
     }

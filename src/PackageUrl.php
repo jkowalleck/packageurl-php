@@ -272,7 +272,7 @@ class PackageUrl
             ->setNamespace($namespace)
             ->setVersion($version)
             ->setQualifiers($qualifiers)
-            ->setSubpath($parser->urldecodePath($subpath));
+            ->setSubpath($parser->normalizePath($subpath));
     }
 
 }
