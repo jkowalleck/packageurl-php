@@ -16,8 +16,6 @@ use DomainException;
  * @psalm-import-type TPUrlVersion from PackageUrl
  * @psalm-import-type TPUrlQualifiers from PackageUrl
  * @psalm-import-type TPUrlSubpath from PackageUrl
- *
- * @internal This class is not for public use and therefore is not covered by backwards compatibility.
  */
 final class PackageUrlParser {
 

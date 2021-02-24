@@ -257,6 +257,8 @@ class PackageUrl
             return null;
         }
 
+        $parser = $parser === null ? $parser : new PackageUrlParser();
+
         [
             'type' => $type,
             'name' => $name,
@@ -264,13 +266,13 @@ class PackageUrl
             'version' => $version,
             'qualifiers' => $qualifiers,
             'subpath' => $subpath,
-        ] = ($parser ?? new PackageUrlParser())->parse($data);
+        ] = $parser->parse($data);
 
         return (new PackageUrl($type, $name))
             ->setNamespace($namespace)
             ->setVersion($version)
             ->setQualifiers($qualifiers)
-            ->setSubpath($subpath);
+            ->setSubpath($parser->urldecodePath($subpath));
     }
 
 }
