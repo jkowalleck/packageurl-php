@@ -88,7 +88,7 @@ final class PackageUrlParser
             '/',
             array_map(
                 static function (string $part): string {
-                    // utf8 encode transcode was left out for now, most php is running i utf8 already
+                    // utf8 encode transcode was left out for now, most php is running is utf8 already
                     return rawurlencode($part);
                 },
                 array_filter(
