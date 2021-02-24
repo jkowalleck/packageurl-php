@@ -20,6 +20,8 @@ use phpDocumentor\Reflection\Types\Static_;
  *
  * @psalm-type TParsed = array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
  * @psalm-type TParsedTypeNamespaceNameVersion = array{string, string, string, string}
+ *
+ * @author jkowalleck
  */
 class PackageUrlParser
 {
@@ -27,6 +29,9 @@ class PackageUrlParser
     // region parse
 
     /**
+     * Does pure parsing.
+     * Normalization/decoding is done with other methods from this class.
+     *
      * @psalm-param non-empty-string $data
      *
      * @throws DomainException if scheme mismatches the specs

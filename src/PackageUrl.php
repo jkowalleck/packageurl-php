@@ -237,13 +237,13 @@ class PackageUrl
      */
     public function __toString(): string
     {
-        return self::SCHEME.
-            ':'.$this->type.
-            (null === $this->namespace ? '' : '/'.rawurlencode($this->namespace)).
-            '/'.rawurlencode($this->name).
-            (null === $this->version ? '' : '@'.rawurlencode($this->version)).
-            (0 === count($this->qualifiers) ? '' : '?'.http_build_query($this->qualifiers)). // $TODO see specs
-            (null === $this->subpath ? '' : '#'.$this->subpath);
+        return $this->toString();
+    }
+
+    public function toString(?PackageUrlBuilder $builder): string
+    {
+        $builder = $builder ?? new PackageUrlBuilder();
+        return $builder->build(self::SCHEME, $this->type, $this->namespace, $this->name, $this->version, $this->qualifiers, $this->subpath);
     }
 
     /**
