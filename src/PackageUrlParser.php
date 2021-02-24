@@ -24,6 +24,8 @@ use phpDocumentor\Reflection\Types\Static_;
 class PackageUrlParser
 {
 
+    // region parse
+
     /**
      * @psalm-param non-empty-string $data
      *
@@ -50,6 +52,7 @@ class PackageUrlParser
             'subpath' => $subpath,
         ];
     }
+
 
     /**
      * @psalm-return TParsedTypeNamespaceNameVersion
@@ -89,28 +92,59 @@ class PackageUrlParser
         return [$type, $namespace, $name, $version];
     }
 
-    /**
-     * @TODO pretty much unoptimized. some parts may be done by the model.
-     */
-    public function normalizePath(string $subpath): string
-    {
-        $segments = explode('/', trim($subpath, '/'));
-        $segments = array_filter($segments, Static function (string $segment): bool {
-            return false === in_array($segment, ['', '.', '..'], true);
-        });
-        $segments = array_map(
-            static function (string $segment): string {
-                // utf8 encode transcode was left out for now, most php is running is utf8 already
-                return rawurldecode($segment);
-            },
-            $segments
-        );
 
-        return implode('/', $segments);
-    }
+    // endregion parse
+
+
+    // region normalize
 
     public function normalizeScheme(string $scheme): string {
         return strtolower($scheme);
     }
+
+    public function normalizeType(string $data): string {
+        return strtolower($data);
+    }
+
+    public function normalizeNamespace(string $data): string {
+        $parts = explode('/', trim($data, '/'));
+        $parts = array_map(
+            static function (string $part): string {
+                // utf8 encode transcode was left out for now, most php is running is utf8 already
+                return rawurldecode($part);
+            },
+            $parts
+        );
+
+        return implode('/', $parts);
+    }
+
+    public function normalizeName(string $data): string {
+        return rawurldecode($data);
+    }
+
+    public function normalizeVersion(string $data): string {
+        return rawurldecode($data);
+    }
+
+
+    public function normalizeSubpath(string $data): string
+    {
+        $parts = explode('/', trim($data, '/'));
+        $parts = array_filter($parts, Static function (string $part): bool {
+            return false === in_array($part, ['', '.', '..'], true);
+        });
+        $parts = array_map(
+            static function (string $part): string {
+                // utf8 encode transcode was left out for now, most php is running is utf8 already
+                return rawurldecode($part);
+            },
+            $parts
+        );
+
+        return implode('/', $parts);
+    }
+
+    // endregion normalize
 
 }

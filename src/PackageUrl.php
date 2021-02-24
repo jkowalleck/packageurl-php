@@ -23,7 +23,6 @@ class PackageUrl
 {
     public const SCHEME = 'pkg';
 
-
     /**
      * @psalm-var TType
      * @psalm-suppress PropertyNotSetInConstructor
@@ -249,7 +248,7 @@ class PackageUrl
 
     /**
      * @throws DomainException if the data is invalid according to the specification
-     * @psalm-return PackageUrl|null null when empty string is passed
+     * @psalm-return static|null null when empty string is passed
      */
     public static function fromString(string $data, ?PackageUrlParser $parser = null): ?self
     {
@@ -257,7 +256,7 @@ class PackageUrl
             return null;
         }
 
-        $parser = $parser === null ? $parser : new PackageUrlParser();
+        $parser = $parser ?? new PackageUrlParser();
 
         [
             'scheme' => $scheme,
@@ -273,11 +272,14 @@ class PackageUrl
             throw new DomainException("mismatching scheme '{$scheme}'");
         }
 
-        return (new PackageUrl($type, $name))
-            ->setNamespace($namespace)
-            ->setVersion($version)
+        return (new static(
+            $parser->normalizeType($type),
+            $parser->normalizeName($name)
+        ))
+            ->setNamespace($parser->normalizeNamespace($namespace))
+            ->setVersion($parser->normalizeVersion($version))
             ->setQualifiers($qualifiers)
-            ->setSubpath($parser->normalizePath($subpath));
+            ->setSubpath($parser->normalizeSubpath($subpath));
     }
 
 }
