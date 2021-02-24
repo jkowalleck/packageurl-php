@@ -77,12 +77,16 @@ final class PackageUrlParser {
         return [$type, $namespace, $name, $version];
     }
 
+    /**
+     * @TODO pretty much unoptimized. some parts may be done by the model.
+     */
     public function urldecodePath (string $subpath) : string
     {
         return implode(
             '/',
             array_map(
                 static function (string $part): string {
+                    // utf8 encode transcode was left out for now, most php is running i utf8 already
                     return rawurlencode($part);
                 },
                 array_filter(
