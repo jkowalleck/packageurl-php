@@ -109,4 +109,8 @@ class PackageUrlParser
         return implode('/', $segments);
     }
 
+    public function normalizeScheme(string $scheme): string {
+        return strtolower($scheme);
+    }
+
 }

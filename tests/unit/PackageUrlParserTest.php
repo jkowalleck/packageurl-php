@@ -51,13 +51,12 @@ class PackageUrlParserTest extends TestCase {
 
     // endregion parseTypeNamespaceNameVersion
 
-    // region urldecodePath
-
+    // region normalizePath
 
     /**
-     * @dataProvider dpUrldecodePath
+     * @dataProvider dpNormalizePath
      */
-    public function testUrldecodePath(string $input, string $expectedOutcome): void
+    public function testNormalizePath(string $input, string $expectedOutcome): void
     {
         $parser = new PackageUrlParser();
 
@@ -69,7 +68,7 @@ class PackageUrlParserTest extends TestCase {
     /**
      * @psalm-return Generator<string, array{string, string}>
      */
-    public static function dpUrldecodePath(): Generator {
+    public static function dpNormalizePath(): Generator {
         yield 'empty' => ['', ''];
         yield 'dot' => ['.', ''];
         yield 'dot dot' => ['..', ''];
@@ -78,10 +77,35 @@ class PackageUrlParserTest extends TestCase {
         yield 'surrounding slashes' => ['/path//', 'path'];
         yield 'inner slashes' => ['some//path/', 'some/path'];
         yield 'encoded' => ['some%20path/', 'some path'];
-        yield 'complex' => ['//foo/./bar/..//baz%20oof/', 'foo/bar/baz oof'];
+        yield 'complex' => ['//foo/./bar/..//Baz%20ooF/', 'foo/Bar/baz ooF'];
 
     }
 
-    //endregion urldecodePath
+    //endregion normalizePath
+
+    // region normalizeScheme
+
+    /**
+     * @dataProvider dpNormalizeScheme
+     */
+    public function testNormalizeScheme(string $input, string $expectedOutput) {
+        $parser = new PackageUrlParser();
+
+        $normalized = $parser->normalizeScheme($input);
+
+        self::assertEquals($expectedOutput, $normalized);
+    }
+
+    /**
+     * @psalm-return Generator<string, array{string}>
+     */
+    public static function dpNormalizeScheme(): Generator {
+        yield 'lowercase' => ['something', 'something'];
+        yield 'uppercase' => ['SOMETHING', 'something'];
+        yield 'mIxeDCase' => ['sOmetHIng', 'something'];
+    }
+
+
+    // endregion normalizeScheme
 
 }

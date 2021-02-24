@@ -260,6 +260,7 @@ class PackageUrl
         $parser = $parser === null ? $parser : new PackageUrlParser();
 
         [
+            'scheme' => $scheme,
             'type' => $type,
             'name' => $name,
             'namespace' => $namespace,
@@ -267,6 +268,10 @@ class PackageUrl
             'qualifiers' => $qualifiers,
             'subpath' => $subpath,
         ] = $parser->parse($data);
+
+        if ($parser->normalizeScheme($scheme) !== self::SCHEME) {
+            throw new DomainException("mismatching scheme '{$scheme}'");
+        }
 
         return (new PackageUrl($type, $name))
             ->setNamespace($namespace)
