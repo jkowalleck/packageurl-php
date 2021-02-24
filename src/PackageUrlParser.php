@@ -11,12 +11,12 @@ use phpDocumentor\Reflection\Types\Static_;
  * A purl is a package URL as defined at
  * {@link https://github.com/package-url/purl-spec}.
  *
- * @psalm-import-type TPUrlType from PackageUrl
- * @psalm-import-type TPUrlNamespace from PackageUrl
- * @psalm-import-type TPUrlName from PackageUrl
- * @psalm-import-type TPUrlVersion from PackageUrl
- * @psalm-import-type TPUrlQualifiers from PackageUrl
- * @psalm-import-type TPUrlSubpath from PackageUrl
+ * @psalm-import-type TType from PackageUrl
+ * @psalm-import-type TNamespace from PackageUrl
+ * @psalm-import-type TName from PackageUrl
+ * @psalm-import-type TVersion from PackageUrl
+ * @psalm-import-type TQualifiers from PackageUrl
+ * @psalm-import-type TSubpath from PackageUrl
  *
  * @psalm-type TParsed = array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
  *
@@ -102,26 +102,35 @@ class PackageUrlParser
 
     // region normalize
 
-    public function normalizeScheme(string $data): string {
+    public function normalizeScheme(string $data): string
+    {
         return strtolower($data);
     }
 
     /**
-     * @psalm-return TPUrlType|string
+     * @psalm-return TType|string
      */
-    public function normalizeType(string $data): string {
+    public function normalizeType(string $data): string
+    {
         return strtolower($data);
     }
 
     /**
-     * @psalm-return TPUrlNamespace
+     * @psalm-return TNamespace
      */
-    public function normalizeNamespace(string $data): ?string {
+    public function normalizeNamespace(string $data): ?string
+    {
         if ('' === $data) {
             return null;
         }
 
         $parts = explode('/', trim($data, '/'));
+        $parts = array_filter(
+            $parts,
+            static function (string $part): bool {
+                return '' !== $part;
+            }
+        );
         $parts = array_map(
             static function (string $part): string {
                 // utf8 encode transcode was left out for now, most php is running is utf8 already
@@ -131,36 +140,64 @@ class PackageUrlParser
         );
 
         $namespace = implode('/', $parts);
+
         return '' === $namespace ? null : $namespace;
     }
 
     /**
-     * @psalm-return TPUrlName|string
+     * @psalm-return TName|string
      */
-    public function normalizeName(string $data): string {
+    public function normalizeName(string $data): string
+    {
         return rawurldecode($data);
     }
 
     /**
-     * @psalm-return TPUrlVersion
+     * @psalm-return TVersion
      */
-    public function normalizeVersion(string $data): string {
+    public function normalizeVersion(string $data): ?string
+    {
         if ('' === $data) {
-            return $data;
+            return null;
         }
 
         return rawurldecode($data);
     }
 
     /**
-     * @psalm-return TPUrlQualifiers
+     * @psalm-return TQualifiers
      */
-    public function normalizeQualifiers(string $data): array {
-        return []; // @TODO
+    public function normalizeQualifiers(string $data): array
+    {
+        if ('' === $data) {
+            return [];
+        }
+
+        $qualifiers = [];
+
+        $dataKeysValues = explode('&', $data);
+        foreach ($dataKeysValues as $dataKeyValue) {
+            $eqPos = strpos($dataKeyValue, '=');
+            if (false === $eqPos || 0 === $eqPos) {
+                continue;
+            }
+            $value = rawurldecode(substr($dataKeyValue, $eqPos+1));
+            if ($value === '' ) {
+                continue;
+            }
+            $key = strtolower(substr($dataKeyValue, 0, $eqPos));
+            if ($key === 'checksum') {
+                $value = explode(',', $value);
+            }
+            $qualifiers[$key] = $value;
+        }
+        unset($dataKeyValue);
+
+        return $qualifiers;
     }
 
     /**
-     * @psalm-return TPUrlSubpath
+     * @psalm-return TSubpath
      */
     public function normalizeSubpath(string $data): ?string
     {
@@ -169,9 +206,12 @@ class PackageUrlParser
         }
 
         $parts = explode('/', trim($data, '/'));
-        $parts = array_filter($parts, Static function (string $part): bool {
-            return false === in_array($part, ['', '.', '..'], true);
-        });
+        $parts = array_filter(
+            $parts,
+            static function (string $part): bool {
+                return false === in_array($part, ['', '.', '..'], true);
+            }
+        );
         $parts = array_map(
             static function (string $part): string {
                 // utf8 encode transcode was left out for now, most php is running is utf8 already
@@ -181,6 +221,7 @@ class PackageUrlParser
         );
 
         $subpath = implode('/', $parts);
+
         return '' === $subpath ? null : $subpath;
     }
 

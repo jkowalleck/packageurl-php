@@ -87,16 +87,17 @@ class PackageUrlParserTest extends TestCase
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeVersion($input);
-        self::assertEquals($expectedOutput, $normalized);
+        self::assertSame($expectedOutput, $normalized);
     }
 
     /**
      * @dataProvider dpNormalizeQualifiers
-     * @dataProvider dpStringsEmptyToNull
      */
     public function testNormalizeQualifiers(string $input, array $expectedOutcome): void
     {
-        self::markTestSkipped('nit implemented');
+        $parser = new PackageUrlParser();
+        $normalized = $parser->normalizeQualifiers($input);
+        self::assertEquals($expectedOutcome, $normalized);
     }
 
     /**
@@ -138,8 +139,11 @@ class PackageUrlParserTest extends TestCase
      * @psalm-return Generator<string, array{string, string}>
      */
     public static function dpNormalizeNamespace(): Generator {
+        yield 'empty/namespace' => ['/', null];
         yield 'some namespace' => ['some/Namespace','some/Namespace'];
+        yield 'some/empty namespace' => ['some//Namespace','some/Namespace'];
         yield 'encoded namespace' => ['some/Name%20space', 'some/Name space'];
+        yield 'complex namespace' => ['/yet/another//Name%20space/', 'yet/another/Name space'];
     }
 
     public static function dpStringsToDecoded(): Generator {
@@ -153,6 +157,12 @@ class PackageUrlParserTest extends TestCase
     public static function dpNormalizeQualifiers(): Generator
     {
         yield 'empty' => ['', []];
+        yield 'some empty value' => ['k=', []];
+        yield 'some kv' => ['k=v', ['k'=>'v']];
+        yield 'some KV' => ['k=V', ['k'=>'V']];
+        yield 'some encoded value' => ['k=a%20value', ['k'=>'a value']];
+        yield 'checksums' => ['checksum=sha1:1234567890123,md5:4567890123456789012', ['checksum' => ['sha1:1234567890123', 'md5:4567890123456789012']]];
+        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=', ['k1'=>'v1', 'k2'=>'v2']];
     }
 
     /**
