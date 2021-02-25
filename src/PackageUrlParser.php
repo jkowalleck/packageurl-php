@@ -192,7 +192,7 @@ class PackageUrlParser
             if ($value === '') {
                 continue;
             }
-            $key = rawurldecode(strtolower(substr($dataKeyValue, 0, $eqPos)));
+            $key = strtolower(substr($dataKeyValue, 0, $eqPos));
             if ($key === 'checksum') {
                 $value = explode(',', $value);
             }
