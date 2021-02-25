@@ -10,11 +10,11 @@ use DomainException;
  * A purl is a package URL as defined at
  * {@link https://github.com/package-url/purl-spec}.
  *
- * @psalm-type TQualifiers = array<non-empty-string, non-empty-string>
  * @psalm-type TType = non-empty-string
  * @psalm-type TNamespace = non-empty-string|null
  * @psalm-type TName = non-empty-string
  * @psalm-type TVersion = non-empty-string|null
+ * @psalm-type TQualifiers = array<non-empty-string, non-empty-string>|null
  * @psalm-type TSubpath = non-empty-string|null
  *
  * @author jkowalleck
@@ -48,7 +48,7 @@ class PackageUrl
     /**
      * @psalm-var TQualifiers
      */
-    private $qualifiers = [];
+    private $qualifiers;
 
     /**
      * @psalm-var TSubpath
@@ -149,7 +149,7 @@ class PackageUrl
     /**
      * @psalm-return TQualifiers
      */
-    public function getQualifiers(): array
+    public function getQualifiers(): ?array
     {
         return $this->qualifiers;
     }
@@ -158,14 +158,8 @@ class PackageUrl
      * @psalm-param TQualifiers $qualifiers
      * @psalm-return $this
      */
-    public function setQualifiers(array $qualifiers): self
+    public function setQualifiers(?array $qualifiers): self
     {
-        foreach ($qualifiers as $key => $value) {
-            if (false === $this->validateQualifier($key, $value)) {
-                unset($qualifiers[$key]);
-            }
-        }
-
         $this->qualifiers = $qualifiers;
 
         return $this;
@@ -192,29 +186,6 @@ class PackageUrl
 
 
     // endregion getters/setters
-
-    /**
-     * @psalm-param array-key $key
-     * @psalm-param mixed $value
-     *
-     * @throws DomainException
-     *
-     * @psalm-return bool
-     *
-     * @TODO not all rules were implemented, yet
-     */
-    private function validateQualifier($key, $value): bool
-    {
-        if (false === is_string($key) || '' === $key) {
-            throw new DomainException("PURL qualifiers key is invalid: {$key}");
-        }
-        if (false === is_string($value)) {
-            throw new DomainException("PURL qualifiers value for key '{$key}' is invalid: {$value}");
-        }
-
-        // as of rule: a `key=value` pair with an empty `value` is the same as no key/value at all for this key
-        return '' !== $value;
-    }
 
     /**
      * @throws DomainException if a value was invalid
@@ -274,9 +245,9 @@ class PackageUrl
 
         return (new static(
             $parser->normalizeType($type),
-            $parser->normalizeName($name)
+            $parser->normalizeName($name, $type)
         ))
-            ->setNamespace($parser->normalizeNamespace($namespace))
+            ->setNamespace($parser->normalizeNamespace($namespace, $type))
             ->setVersion($parser->normalizeVersion($version))
             ->setQualifiers($qualifiers)
             ->setSubpath($parser->normalizeSubpath($subpath));

@@ -65,7 +65,7 @@ class PackageUrlParserTest extends TestCase
     public function testNormalizeNamespace(string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
-        $normalized = $parser->normalizeNamespace($input);
+        $normalized = $parser->normalizeNamespace($input, null);
         self::assertSame($expectedOutput, $normalized);
     }
 
@@ -75,7 +75,7 @@ class PackageUrlParserTest extends TestCase
     public function testNormalizeName(string $input, string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
-        $normalized = $parser->normalizeName($input);
+        $normalized = $parser->normalizeName($input, null);
         self::assertEquals($expectedOutput, $normalized);
     }
 
@@ -93,7 +93,7 @@ class PackageUrlParserTest extends TestCase
     /**
      * @dataProvider dpNormalizeQualifiers
      */
-    public function testNormalizeQualifiers(string $input, array $expectedOutcome): void
+    public function testNormalizeQualifiers(string $input, ?array $expectedOutcome): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeQualifiers($input);
@@ -156,8 +156,8 @@ class PackageUrlParserTest extends TestCase
      */
     public static function dpNormalizeQualifiers(): Generator
     {
-        yield 'empty' => ['', []];
-        yield 'some empty value' => ['k=', []];
+        yield 'empty' => ['', null];
+        yield 'some empty value' => ['k=', null];
         yield 'some kv' => ['k=v', ['k'=>'v']];
         yield 'some KV' => ['k=V', ['k'=>'V']];
         yield 'some encoded value' => ['k=a%20value', ['k'=>'a value']];

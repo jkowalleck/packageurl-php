@@ -5,20 +5,10 @@ declare(strict_types=1);
 namespace PackageUrl;
 
 use DomainException;
-use phpDocumentor\Reflection\Types\Static_;
 
 /**
  * A purl is a package URL as defined at
  * {@link https://github.com/package-url/purl-spec}.
- *
- * @psalm-import-type TType from PackageUrl
- * @psalm-import-type TNamespace from PackageUrl
- * @psalm-import-type TName from PackageUrl
- * @psalm-import-type TVersion from PackageUrl
- * @psalm-import-type TQualifiers from PackageUrl
- * @psalm-import-type TSubpath from PackageUrl
- *
- * @psalm-type TParsed = array{type: string, namespace: string, name: string, version: string, qualifiers: string, subpath: string}
  *
  * @author jkowalleck
  */
@@ -31,15 +21,13 @@ class PackageUrlParser
      * Does pure parsing.
      * Normalization/decoding is done with other methods from this class.
      *
-     * @psalm-param non-empty-string $data
-     *
      * @throws DomainException if scheme mismatches the specs
      *
-     * @psalm-return TParsed
+     * @psalm-return array{type|namespace|name|version|qualifiers|subpath: string}|null
      */
     public function parse(string $data): array
     {
-        $parts = parse_url($data);
+        $parts = '' === $data ? [] : parse_url($data);
 
         $scheme = $parts['scheme'] ?? '';
         $qualifiers = $parts['query'] ?? '';
@@ -59,19 +47,22 @@ class PackageUrlParser
 
 
     /**
-     * @psalm-return array{string, string, string, string}
+     * @psalm-return array{0|1|2|3: string}
      */
-    private function parseTypeNamespaceNameVersion(string $string): array
+    private function parseTypeNamespaceNameVersion(string $data): array
     {
-        $string = trim($string, '/');
+        $data = trim($data, '/');
+        if ('' === $data) {
+            return ['', '', '', ''];
+        }
 
-        $leftSlashPos = strpos($string, '/');
+        $leftSlashPos = strpos($data, '/');
         if (false === $leftSlashPos) {
-            $type = $string;
+            $type = $data;
             $remainder = '';
         } else {
-            $type = substr($string, 0, $leftSlashPos);
-            $remainder = substr($string, $leftSlashPos + 1);
+            $type = substr($data, 0, $leftSlashPos);
+            $remainder = substr($data, $leftSlashPos + 1);
         }
 
         $rightAtPos = strrpos($remainder, '@');
@@ -102,23 +93,23 @@ class PackageUrlParser
 
     // region normalize
 
-    public function normalizeScheme(string $data): string
+    public function normalizeScheme(string $data): ?string
     {
-        return strtolower($data);
+        return '' === $data ? null : strtolower($data);
     }
 
     /**
-     * @psalm-return TType|string
+     * @return non-empty-string|null
      */
-    public function normalizeType(string $data): string
+    public function normalizeType(string $data): ?string
     {
-        return strtolower($data);
+        return '' === $data ? null : strtolower($data);
     }
 
     /**
-     * @psalm-return TNamespace
+     * @return non-empty-string|null
      */
-    public function normalizeNamespace(string $data): ?string
+    public function normalizeNamespace(string $data, ?string $type): ?string
     {
         if ('' === $data) {
             return null;
@@ -140,65 +131,83 @@ class PackageUrlParser
         );
 
         $namespace = implode('/', $parts);
-
-        return '' === $namespace ? null : $namespace;
-    }
-
-    /**
-     * @psalm-return TName|string
-     */
-    public function normalizeName(string $data): string
-    {
-        return rawurldecode($data);
-    }
-
-    /**
-     * @psalm-return TVersion
-     */
-    public function normalizeVersion(string $data): ?string
-    {
-        if ('' === $data) {
+        if ('' === $namespace) {
             return null;
         }
 
-        return rawurldecode($data);
+        $type = null === $type ? null : $this->normalizeType($type);
+
+        return in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)
+            ? strtolower($namespace)
+            : $namespace;
+
     }
 
     /**
-     * @psalm-return TQualifiers
+     * @return non-empty-string|null
      */
-    public function normalizeQualifiers(string $data): array
+    public function normalizeName(string $data, ?string $type): ?string
     {
-        $qualifiers = [];
-        if ('' === $data) {
-            return $qualifiers;
+        $name = rawurldecode($data);
+        if ('' === $name) {
+            return null;
         }
 
+        $type = null === $type ? null : $this->normalizeType($type);
+
+        if ('pypi' === $type)  {
+            $name = str_replace('_', '-', $name);
+        }
+
+        return in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)
+            ? strtolower($name)
+            : $name;
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function normalizeVersion(string $data): ?string
+    {
+         $version = rawurldecode($data);
+        return '' === $version ? null : $version;
+    }
+
+    /**
+     * @psalm-return non-empty-array|null
+     */
+    public function normalizeQualifiers(string $data): ?array
+    {
+        if ( '' === $data) {
+            return null;
+        }
+
+        $qualifiers = [];
         foreach (explode('&', $data) as $dataKeyValue) {
             $eqPos = strpos($dataKeyValue, '=');
             if (false === $eqPos || 0 === $eqPos) {
                 continue;
             }
-            $value = rawurldecode(substr($dataKeyValue, $eqPos+1));
-            if ($value === '' ) {
+            $value = rawurldecode(substr($dataKeyValue, $eqPos + 1));
+            if ($value === '') {
                 continue;
             }
-            $key = strtolower(substr($dataKeyValue, 0, $eqPos));
+            $key = rawurldecode(strtolower(substr($dataKeyValue, 0, $eqPos)));
             if ($key === 'checksum') {
                 $value = explode(',', $value);
             }
             $qualifiers[$key] = $value;
         }
 
-        return $qualifiers;
+        return 0 === count($qualifiers) ? null : $qualifiers;
     }
 
     /**
-     * @psalm-return TSubpath
+     * @psalm-return non-empty-string|null
      */
     public function normalizeSubpath(string $data): ?string
     {
-        if ('' === $data) {
+        if ( '' === $data) {
             return null;
         }
 
