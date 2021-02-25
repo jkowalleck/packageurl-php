@@ -5,13 +5,13 @@ namespace PackageUrl\Tests\unit;
 use PackageUrl\PackageUrlParser;
 use PHPUnit\Framework\TestCase;
 
-use ReflectionClass;
 use Generator;
 
 /**
  * @covers \PackageUrl\PackageUrlParser
  *
  * @psalm-import-type TParsedTypeNamespaceNameVersion from PackageUrlParser
+ * @psalm-import-type TDataSet from \PackageUrl\Tests\_data\TestSuiteData
  *
  * @author jkowalleck
  */
@@ -19,28 +19,10 @@ class PackageUrlParserTest extends TestCase
 {
 
     /**
-     * @dataProvider dpTypeNamespaceNameVersion
-     *
-     * @psalm-param TParsedTypeNamespaceNameVersion $expectedOutput
-     */
-    public function testParseTypeNamespaceNameVersion(string $input, array $expectedOutput): void
-    {
-        $parser = new PackageUrlParser();
-
-        /** @see PackageUrlParser::parseTypeNamespaceNameVersion() */
-        $parseTypeNamespaceNameVersion = (new ReflectionClass($parser))->getMethod('parseTypeNamespaceNameVersion');
-        $parseTypeNamespaceNameVersion->setAccessible(true);
-
-        $output = $parseTypeNamespaceNameVersion->invoke($parser, $input);
-
-        self::assertSame($expectedOutput, $output);
-    }
-
-
-    /**
      * @dataProvider dpStringsToLowercase
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeScheme(string $input, string $expectedOutput): void
+    public function testNormalizeScheme(?string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeScheme($input);
@@ -49,8 +31,9 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpStringsToLowercase
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeType(string $input, string $expectedOutput): void
+    public function testNormalizeType(?string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeType($input);
@@ -60,9 +43,9 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeNamespace
-     * @dataProvider dpStringsEmptyToNull
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeNamespace(string $input, ?string $expectedOutput): void
+    public function testNormalizeNamespace(?string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeNamespace($input, null);
@@ -71,19 +54,20 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpStringsToDecoded
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeName(string $input, string $expectedOutput): void
+    public function testNormalizeName(?string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeName($input, null);
-        self::assertEquals($expectedOutput, $normalized);
+        self::assertSame($expectedOutput, $normalized);
     }
 
     /**
      * @dataProvider dpStringsToDecoded
-     * @dataProvider dpStringsEmptyToNull
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeVersion(string $input, ?string $expectedOutput): void
+    public function testNormalizeVersion(?string $input, ?string $expectedOutput): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeVersion($input);
@@ -92,53 +76,64 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeQualifiers
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeQualifiers(string $input, ?array $expectedOutcome): void
+    public function testNormalizeQualifiers(?string $input, ?array $expectedOutcome): void
     {
         $parser = new PackageUrlParser();
         $normalized = $parser->normalizeQualifiers($input);
-        self::assertEquals($expectedOutcome, $normalized);
+        self::assertSame($expectedOutcome, $normalized);
     }
 
     /**
      * @dataProvider dpNormalizeSubpath
-     * @dataProvider dpStringsEmptyToNull
+     * @dataProvider dpStringsEmptyAndNull
      */
-    public function testNormalizeSubpath(string $input, ?string $expectedOutcome): void
+    public function testNormalizeSubpath(?string $input, ?string $expectedOutcome): void
     {
         $parser = new PackageUrlParser();
         $decoded = $parser->normalizeSubpath($input);
         self::assertSame($expectedOutcome, $decoded);
     }
 
-
     /**
-     * @psalm-return Generator<string, array{string, TParsedTypeNamespaceNameVersion}>
+     * @dataProvider \PackageUrl\Tests\_data\TestSuiteData::data
+     * @psalm-param TDataSet $data
      */
-    public static function dpTypeNamespaceNameVersion(): Generator
+    public function testParseAndNormalize(array $data): void
     {
-        yield 'empty' => ['', ['', '', '', '']];
-        yield 'type' => ['someType', ['someType', '', '', '']];
-        yield 'type, name' => ['someType/someName', ['someType', '', 'someName', '']];
-        yield 'type, name, version' => ['someType/someName@someVersion', ['someType', '', 'someName', 'someVersion']];
-        yield 'type, namespace, name' => [
-            'someType/someNamespace/someName',
-            ['someType', 'someNamespace', 'someName', ''],
+        $parser = new PackageUrlParser();
+        $expected = [
+            'type' => $data['type'],
+            'namespace' => $data['namespace'],
+            'name' => $data['name'],
+            'version' => $data['version'],
+            'qualifiers' => $data['qualifiers'],
+            'subpath' => $data['subpath'],
         ];
-        yield 'type, name/space, name' => [
-            'someType/some/Name/space/someName',
-            ['someType', 'some/Name/space', 'someName', ''],
+
+        $parsed = $parser->parse($data['purl']);
+        $normalized = [
+            'type' => $parser->normalizeType($parsed['type']),
+            'namespace' => $parser->normalizeNamespace($parsed['namespace'], $parsed['type']),
+            'name' => $parser->normalizeName($parsed['name'], $parsed['type']),
+            'version' => $parser->normalizeVersion($parsed['version']),
+            'qualifiers' => $parser->normalizeQualifiers($parsed['qualifiers']),
+            'subpath' => $parser->normalizeSubpath($parsed['subpath']),
         ];
-        yield 'type, namespace, name, version' => [
-            'someType/someNamespace/someName@someVersion',
-            ['someType', 'someNamespace', 'someName', 'someVersion'],
-        ];
+
+        if ($data['is_invalid']) {
+            self::assertNotSame($expected, $normalized);
+        } else {
+            self::assertSame($expected,  $normalized);
+        }
     }
 
     /**
      * @psalm-return Generator<string, array{string, string}>
      */
-    public static function dpNormalizeNamespace(): Generator {
+    public static function dpNormalizeNamespace(): Generator
+    {
         yield 'empty/namespace' => ['/', null];
         yield 'some namespace' => ['some/Namespace','some/Namespace'];
         yield 'some/empty namespace' => ['some//Namespace','some/Namespace'];
@@ -146,7 +141,8 @@ class PackageUrlParserTest extends TestCase
         yield 'complex namespace' => ['/yet/another//Name%20space/', 'yet/another/Name space'];
     }
 
-    public static function dpStringsToDecoded(): Generator {
+    public static function dpStringsToDecoded(): Generator
+    {
         yield 'some string' => ['someString','someString'];
         yield 'encoded string' => ['some%20%22encoded%22%20string', 'some "encoded" string'];
     }
@@ -156,13 +152,13 @@ class PackageUrlParserTest extends TestCase
      */
     public static function dpNormalizeQualifiers(): Generator
     {
-        yield 'empty' => ['', null];
         yield 'some empty value' => ['k=', null];
+        yield 'some none value' => ['k', null];
         yield 'some kv' => ['k=v', ['k'=>'v']];
         yield 'some KV' => ['k=V', ['k'=>'V']];
         yield 'some encoded value' => ['k=a%20value', ['k'=>'a value']];
         yield 'checksums' => ['checksum=sha1:1234567890123,md5:4567890123456789012', ['checksum' => ['sha1:1234567890123', 'md5:4567890123456789012']]];
-        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=', ['k1'=>'v1', 'k2'=>'v2']];
+        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', ['k1'=>'v1', 'k2'=>'v2']];
     }
 
     /**
@@ -191,8 +187,9 @@ class PackageUrlParserTest extends TestCase
         yield 'mIxeDCase' => ['sOmetHIng', 'something'];
     }
 
-    public static function dpStringsEmptyToNull(): Generator {
+    public static function dpStringsEmptyAndNull(): Generator {
         yield 'empty' => ['', null];
+        yield 'null' => [null, null];
     }
 
 }

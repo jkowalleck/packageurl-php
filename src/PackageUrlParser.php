@@ -27,12 +27,16 @@ class PackageUrlParser
      */
     public function parse(string $data): array
     {
-        $parts = '' === $data ? [] : parse_url($data);
+        $remainder = $data;
 
-        $scheme = $parts['scheme'] ?? '';
-        $qualifiers = $parts['query'] ?? '';
-        $subpath = $parts['fragment'] ?? '';
-        [$type, $namespace, $name, $version] = $this->parseTypeNamespaceNameVersion($parts['path'] ?? '');
+        [$subpath, $remainder] = $this->splitRightOn('#', $remainder, false);
+        [$qualifiers, $remainder] = $this->splitRightOn('?', $remainder, false);
+        [$scheme, $remainder] = $this->splitLeftOn(':', $remainder, true);
+        $remainder = trim($remainder, '/');
+        [$type, $remainder] = $this->splitLeftOn('/', $remainder, true);
+        [$version, $remainder] = $this->splitRightOn('@', $remainder, false);
+        [$name, $remainder] = $this->splitRightOn('/', $remainder, true);
+        $namespace = '' === $remainder ? null : $remainder;
 
         return [
             'scheme' => $scheme,
@@ -45,75 +49,65 @@ class PackageUrlParser
         ];
     }
 
-
     /**
-     * @psalm-return array{0|1|2|3: string}
+     * @psalm-return array{string|null, string}
      */
-    private function parseTypeNamespaceNameVersion(string $data): array
+    private function splitRightOn(string $chr, string $data, bool $rightRequired): array
     {
-        $data = trim($data, '/');
-        if ('' === $data) {
-            return ['', '', '', ''];
+        $pos = strrpos($data, $chr);
+        if (false !== $pos){
+            return [substr($data, $pos+1), substr($data, 0, $pos)];
         }
-
-        $leftSlashPos = strpos($data, '/');
-        if (false === $leftSlashPos) {
-            $type = $data;
-            $remainder = '';
-        } else {
-            $type = substr($data, 0, $leftSlashPos);
-            $remainder = substr($data, $leftSlashPos + 1);
-        }
-
-        $rightAtPos = strrpos($remainder, '@');
-        if (false === $rightAtPos) {
-            $version = '';
-        } else {
-            $version = substr($remainder, $rightAtPos + 1);
-            $remainder = substr($remainder, 0, $rightAtPos);
-        }
-
-        $rightSlashPos = strrpos($remainder, '/');
-        if (false === $rightSlashPos) {
-            $name = $remainder;
-            $remainder = '';
-        } else {
-            $name = substr($remainder, $rightSlashPos + 1);
-            $remainder = substr($remainder, 0, $rightSlashPos);
-        }
-
-        $namespace = $remainder;
-
-        return [$type, $namespace, $name, $version];
+        return $rightRequired
+            ? [$data, '']
+            : [null, $data];
     }
 
+    /**
+     * @psalm-return array{string|null, string}
+     */
+    private function splitLeftOn(string $chr, string $data, bool $leftRequired): array
+    {
+        $pos = strpos($data, $chr);
+        if ( false !== $pos ) {
+            return [substr($data, 0, $pos), substr($data, $pos+1)];
+        }
+        return $leftRequired
+            ? [$data, '']
+            : [null, $data];
+    }
 
     // endregion parse
 
 
     // region normalize
 
-    public function normalizeScheme(string $data): ?string
+    public function normalizeScheme(?string $data): ?string
     {
-        return '' === $data ? null : strtolower($data);
+        if (null === $data) { return $data; }
+        return '' === $data
+            ? null
+            : strtolower($data);
     }
 
     /**
      * @return non-empty-string|null
      */
-    public function normalizeType(string $data): ?string
+    public function normalizeType(?string $data): ?string
     {
-        return '' === $data ? null : strtolower($data);
+        if (null === $data) { return $data; }
+        return '' === $data
+            ? null
+            : strtolower($data);
     }
 
     /**
      * @return non-empty-string|null
      */
-    public function normalizeNamespace(string $data, ?string $type): ?string
+    public function normalizeNamespace(?string $data, ?string $type): ?string
     {
-        if ('' === $data) {
-            return null;
-        }
+        if (null === $data) { return $data; }
+        if ('' === $data) { return null; }
 
         $parts = explode('/', trim($data, '/'));
         $parts = array_filter(
@@ -146,8 +140,9 @@ class PackageUrlParser
     /**
      * @return non-empty-string|null
      */
-    public function normalizeName(string $data, ?string $type): ?string
+    public function normalizeName(?string $data, ?string $type): ?string
     {
+        if (null === $data) { return $data; }
         $name = rawurldecode($data);
         if ('' === $name) {
             return null;
@@ -167,17 +162,23 @@ class PackageUrlParser
     /**
      * @return non-empty-string|null
      */
-    public function normalizeVersion(string $data): ?string
+    public function normalizeVersion(?string $data): ?string
     {
-         $version = rawurldecode($data);
-        return '' === $version ? null : $version;
+        if (null === $data) { return $data; }
+
+        $version = rawurldecode($data);
+        return '' === $version
+            ? null
+            : $version;
     }
 
     /**
      * @psalm-return non-empty-array|null
      */
-    public function normalizeQualifiers(string $data): ?array
+    public function normalizeQualifiers(?string $data): ?array
     {
+        if (null === $data) { return $data; }
+
         if ( '' === $data) {
             return null;
         }
@@ -199,14 +200,17 @@ class PackageUrlParser
             $qualifiers[$key] = $value;
         }
 
-        return 0 === count($qualifiers) ? null : $qualifiers;
+        return 0 === count($qualifiers)
+            ? null
+            : $qualifiers;
     }
 
     /**
      * @psalm-return non-empty-string|null
      */
-    public function normalizeSubpath(string $data): ?string
+    public function normalizeSubpath(?string $data): ?string
     {
+        if (null === $data) { return $data; }
         if ( '' === $data) {
             return null;
         }
@@ -228,7 +232,9 @@ class PackageUrlParser
 
         $subpath = implode('/', $parts);
 
-        return '' === $subpath ? null : $subpath;
+        return '' === $subpath
+            ? null
+            : $subpath;
     }
 
     // endregion normalize
