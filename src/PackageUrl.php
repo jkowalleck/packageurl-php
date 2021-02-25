@@ -211,7 +211,7 @@ class PackageUrl
         return $this->toString();
     }
 
-    public function toString(?PackageUrlBuilder $builder): string
+    public function toString(?PackageUrlBuilder $builder=null): string
     {
         $builder = $builder ?? new PackageUrlBuilder();
         return $builder->build(self::SCHEME, $this->type, $this->namespace, $this->name, $this->version, $this->qualifiers, $this->subpath);
@@ -249,7 +249,7 @@ class PackageUrl
         ))
             ->setNamespace($parser->normalizeNamespace($namespace, $type))
             ->setVersion($parser->normalizeVersion($version))
-            ->setQualifiers($qualifiers)
+            ->setQualifiers($parser->normalizeQualifiers($qualifiers))
             ->setSubpath($parser->normalizeSubpath($subpath));
     }
 

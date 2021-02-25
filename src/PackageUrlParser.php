@@ -21,9 +21,14 @@ class PackageUrlParser
      * Does pure parsing.
      * Normalization/decoding is done with other methods from this class.
      *
-     * @throws DomainException if scheme mismatches the specs
-     *
-     * @psalm-return array{type|namespace|name|version|qualifiers|subpath: string}|null
+     * @psalm-return array{
+     *      type: string|null,
+     *      namespace: string|null,
+     *      name: string|null,
+     *      version: string|null,
+     *      qualifiers: string|null,
+     *      subpath: string|null,
+     * }
      */
     public function parse(string $data): array
     {
