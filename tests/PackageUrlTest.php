@@ -31,7 +31,7 @@ declare(strict_types=1);
  * for support and download.
  */
 
-namespace PackageUrl\Tests\unit;
+namespace PackageUrl\Tests;
 
 use DomainException;
 use PackageUrl\PackageUrl;
