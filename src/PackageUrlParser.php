@@ -137,9 +137,11 @@ class PackageUrlParser
 
         $type = null === $type ? null : $this->normalizeType($type);
 
-        return in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)
-            ? strtolower($namespace)
-            : $namespace;
+        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)) {
+            $namespace = strtolower($namespace);
+        }
+
+        return $namespace;
 
     }
 
@@ -157,12 +159,18 @@ class PackageUrlParser
         $type = null === $type ? null : $this->normalizeType($type);
 
         if ('pypi' === $type)  {
+            /**
+             * note for psalm that the length did not change
+             * @psalm-var non-empty-string $name
+             */
             $name = str_replace('_', '-', $name);
         }
 
-        return in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)
-            ? strtolower($name)
-            : $name;
+        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)) {
+            $name = strtolower($name);
+        }
+
+        return $name;
     }
 
     /**

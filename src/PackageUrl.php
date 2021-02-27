@@ -72,7 +72,6 @@ class PackageUrl
      */
     public function setType(string $type): self
     {
-        /** @psalm-suppress TypeDoesNotContainType implemented for non-psalm users */
         if ('' === $type) {
             throw new DomainException('Type must not be empty');
         }
