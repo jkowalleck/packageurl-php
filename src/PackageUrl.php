@@ -14,7 +14,7 @@ use DomainException;
  * @psalm-type TNamespace = non-empty-string|null
  * @psalm-type TName = non-empty-string
  * @psalm-type TVersion = non-empty-string|null
- * @psalm-type TQualifiers = array<non-empty-string, non-empty-string>|null
+ * @psalm-type TQualifiers = null|array<non-empty-string, non-empty-string>
  * @psalm-type TSubpath = non-empty-string|null
  *
  * @author jkowalleck
@@ -66,7 +66,6 @@ class PackageUrl
     }
 
     /**
-     * @psalm-param TType $type
      *
      * @throws DomainException if value is empty
      * @psalm-return  $this
@@ -77,8 +76,7 @@ class PackageUrl
         if ('' === $type) {
             throw new DomainException('Type must not be empty');
         }
-
-        $this->type = strtolower($type);
+        $this->type = $type;
 
         return $this;
     }
@@ -92,7 +90,6 @@ class PackageUrl
     }
 
     /**
-     * @psalm-param TNamespace|string $namespace
      * @psalm-return $this
      */
     public function setNamespace(?string $namespace): self
@@ -111,7 +108,6 @@ class PackageUrl
     }
 
     /**
-     * @psalm-param TName $name
      *
      * @throws DomainException if value is empty
      * @psalm-return $this
@@ -136,7 +132,6 @@ class PackageUrl
     }
 
     /**
-     * @psalm-param TVersion|string $version
      * @psalm-return $this
      */
     public function setVersion(?string $version): self
@@ -174,7 +169,6 @@ class PackageUrl
     }
 
     /**
-     * @psalm-param TSubpath|string $subpath
      * @psalm-return $this
      */
     public function setSubpath(?string $subpath): self
@@ -189,9 +183,6 @@ class PackageUrl
 
     /**
      * @throws DomainException if a value was invalid
-     *
-     * @psalm-param TType $type
-     * @psalm-param TName $name
      *
      * @see settype()
      * @see setName()
@@ -211,10 +202,19 @@ class PackageUrl
         return $this->toString();
     }
 
-    public function toString(?PackageUrlBuilder $builder=null): string
+    public function toString(?PackageUrlBuilder $builder = null): string
     {
         $builder = $builder ?? new PackageUrlBuilder();
-        return $builder->build(self::SCHEME, $this->type, $this->namespace, $this->name, $this->version, $this->qualifiers, $this->subpath);
+
+        return $builder->build(
+            self::SCHEME,
+            $this->type,
+            $this->namespace,
+            $this->name,
+            $this->version,
+            $this->qualifiers,
+            $this->subpath
+        );
     }
 
     /**
@@ -243,10 +243,18 @@ class PackageUrl
             throw new DomainException("mismatching scheme '{$scheme}'");
         }
 
-        return (new static(
-            $parser->normalizeType($type),
-            $parser->normalizeName($name, $type)
-        ))
+        $type = $parser->normalizeType($type);
+        if ($type === null) {
+            throw new DomainException("type cannot be empty");
+        }
+
+        $name = $parser->normalizeName($name, $type);
+        if ($name === null) {
+            throw new DomainException("name cannot be empty");
+        }
+
+
+        return (new static($type, $name))
             ->setNamespace($parser->normalizeNamespace($namespace, $type))
             ->setVersion($parser->normalizeVersion($version))
             ->setQualifiers($parser->normalizeQualifiers($qualifiers))

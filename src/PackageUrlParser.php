@@ -34,6 +34,7 @@ class PackageUrlParser
     {
         $remainder = $data;
 
+        // used custom parse, since `parse_url` had issues with multiple leading slashes
         [$subpath, $remainder] = $this->splitRightOn('#', $remainder, false);
         [$qualifiers, $remainder] = $this->splitRightOn('?', $remainder, false);
         [$scheme, $remainder] = $this->splitLeftOn(':', $remainder, true);
@@ -89,7 +90,7 @@ class PackageUrlParser
 
     public function normalizeScheme(?string $data): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
         return '' === $data
             ? null
             : strtolower($data);
@@ -100,7 +101,7 @@ class PackageUrlParser
      */
     public function normalizeType(?string $data): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
         return '' === $data
             ? null
             : strtolower($data);
@@ -111,7 +112,7 @@ class PackageUrlParser
      */
     public function normalizeNamespace(?string $data, ?string $type): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
         if ('' === $data) { return null; }
 
         $parts = explode('/', trim($data, '/'));
@@ -147,7 +148,7 @@ class PackageUrlParser
      */
     public function normalizeName(?string $data, ?string $type): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
         $name = rawurldecode($data);
         if ('' === $name) {
             return null;
@@ -169,7 +170,7 @@ class PackageUrlParser
      */
     public function normalizeVersion(?string $data): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
 
         $version = rawurldecode($data);
         return '' === $version
@@ -178,16 +179,17 @@ class PackageUrlParser
     }
 
     /**
-     * @psalm-return non-empty-array|null
+     * @psalm-return non-empty-array<non-empty-string, non-empty-string>|null
      */
     public function normalizeQualifiers(?string $data): ?array
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
 
         if ( '' === $data) {
             return null;
         }
 
+        /** @var array<non-empty-string, non-empty-string> $qualifiers */
         $qualifiers = [];
         foreach (explode('&', $data) as $dataKeyValue) {
             $eqPos = strpos($dataKeyValue, '=');
@@ -199,13 +201,11 @@ class PackageUrlParser
                 continue;
             }
             $key = strtolower(substr($dataKeyValue, 0, $eqPos));
-            if ($key === 'checksum') {
-                $value = explode(',', $value);
-            }
+            assert('' !== $key);
             $qualifiers[$key] = $value;
         }
 
-        return 0 === count($qualifiers)
+        return empty($qualifiers)
             ? null
             : $qualifiers;
     }
@@ -215,7 +215,7 @@ class PackageUrlParser
      */
     public function normalizeSubpath(?string $data): ?string
     {
-        if (null === $data) { return $data; }
+        if (null === $data) { return null; }
         if ( '' === $data) {
             return null;
         }

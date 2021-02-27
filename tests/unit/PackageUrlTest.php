@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PackageUrl\Tests\unit;
 
 use PackageUrl\PackageUrl;
+use PackageUrl\PackageUrlParser;
 use PHPUnit\Framework\TestCase;
 use DomainException;
 
@@ -141,5 +142,59 @@ class PackageUrlTest extends TestCase
     }
 
     // endregion subpath setter&getter
+
+    // region fromString
+
+    public function testFromStringEmpty(): void
+    {
+        $parser = $this->createMock(PackageUrlParser::class);
+        $purl = $this->sut::fromString('', $parser);
+        self::assertNull($purl);
+    }
+
+    public function testFromString(): void {
+        // arrange
+        $purlString = $this->sut::SCHEME.':type/namespace/name@version?qualifiers=true#subpath';
+        $purlParsed = [
+            'scheme' => uniqid('parsedScheme', true),
+            'type' => uniqid('parsedType', true),
+            'namespace' => uniqid('parsedNamespace', true),
+            'name' => uniqid('parsedName', true),
+            'version' => uniqid('parsedVersion', true),
+            'qualifiers' => uniqid('parsedQualifiers', true),
+            'subpath' => uniqid('parsedSubpath', true),
+        ];
+        $purlNormalized = [
+            'scheme' => $this->sut::SCHEME,
+            'type' => uniqid('normalizedType', true),
+            'namespace' => uniqid('normalizedNamespace', true),
+            'name' => uniqid('normalizedName', true),
+            'version' => uniqid('normalizedVersion', true),
+            'qualifiers' => [uniqid('normalizedKeyQualifiers', true) => uniqid('normalizedValue', true)],
+            'subpath' => uniqid('normalizedSubpath', true),
+        ];
+        $parser = $this->createMock(PackageUrlParser::class);
+        $normalizeWithType = self::logicalOr($purlParsed['type'], $purlNormalized['type']);
+        $parser->expects(self::once())->method('parse')->with($purlString)->willReturn($purlParsed);
+        $parser->method('normalizeScheme')->with($purlParsed['scheme'])->willReturn($purlNormalized['scheme']);
+        $parser->method('normalizeType')->with($purlParsed['type'])->willReturn($purlNormalized['type']);
+        $parser->method('normalizeNamespace')->with($purlParsed['namespace'], $normalizeWithType)->willReturn($purlNormalized['namespace']);
+        $parser->method('normalizeName')->with($purlParsed['name'], $normalizeWithType)->willReturn($purlNormalized['name']);
+        $parser->method('normalizeVersion')->with($purlParsed['version'])->willReturn($purlNormalized['version']);
+        $parser->method('normalizeQualifiers')->with($purlParsed['qualifiers'])->willReturn($purlNormalized['qualifiers']);
+        $parser->method('normalizeSubpath')->with($purlParsed['subpath'])->willReturn($purlNormalized['subpath']);
+        // act
+        $purl = $this->sut::fromString($purlString, $parser);
+        // assert
+        self::assertInstanceOf(get_class($this->sut), $purl);
+        self::assertEquals($purlNormalized['type'], $purl->getType());
+        self::assertEquals($purlNormalized['namespace'], $purl->getNamespace());
+        self::assertEquals($purlNormalized['name'], $purl->getName());
+        self::assertEquals($purlNormalized['version'], $purl->getVersion());
+        self::assertEquals($purlNormalized['qualifiers'], $purl->getQualifiers());
+        self::assertEquals($purlNormalized['subpath'], $purl->getSubpath());
+    }
+
+    // endregion fromString
 
 }

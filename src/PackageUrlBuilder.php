@@ -31,13 +31,13 @@ class PackageUrlBuilder {
      *
      * @TODO see specs & implement
      */
-    public function build(string $scheme, string $type, ?string $namespace, string $name, ?string $version, array $qualifiers, ?string $subpath): string {
+    public function build(string $scheme, string $type, ?string $namespace, string $name, ?string $version, ?array $qualifiers, ?string $subpath): string {
         return $scheme.
         ':'.$type.
         (null === $namespace ? '' : '/'.rawurlencode($namespace)).
         '/'.rawurlencode($name).
         (null === $version ? '' : '@'.rawurlencode($version)).
-        (0 === count($qualifiers) ? '' : '?'.http_build_query($qualifiers)).
+        (null === $qualifiers || 0 === count($qualifiers) ? '' : '?'.http_build_query($qualifiers)).
         (null === $subpath ? '' : '#'.$subpath);
     }
 }
