@@ -181,6 +181,49 @@ class PackageUrlTest extends TestCase
         self::assertNull($purl);
     }
 
+    public function testFromStringInvalidScheme(): void
+    {
+        $parser = $this->createMock(PackageUrlParser::class);
+        $parser->expects(self::once())->method('parse')
+            ->willReturn(self::parsedToNulls());
+        $parser->expects(self::once())->method('normalizeScheme')
+            ->willReturn(null);
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/mismatching scheme/i');
+        $this->sut::fromString('something', $parser);
+    }
+
+    public function testFromStringEmptyType(): void
+    {
+        $parser = $this->createMock(PackageUrlParser::class);
+        $parser->expects(self::once())->method('parse')
+            ->willReturn(self::parsedToNulls());
+        $parser->method('normalizeScheme')
+            ->willReturn($this->sut::SCHEME);
+        $parser->expects(self::once())->method('normalizeType')
+            ->willReturn(null);
+        $parser->method('normalizeName')
+            ->willReturn('something');
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/type .*empty/i');
+        $this->sut::fromString('something', $parser);
+    }
+
+    public function testFromStringEmptyName(): void
+    {
+        $parser = $this->createMock(PackageUrlParser::class);
+        $parser->expects(self::once())->method('parse')
+            ->willReturn(self::parsedToNulls());
+        $parser->method('normalizeScheme')
+            ->willReturn($this->sut::SCHEME);
+        $parser->method('normalizeType')
+            ->willReturn('something');
+        $parser->expects(self::once())->method('normalizeName')
+            ->willReturn(null);
+        $this->expectExceptionMessageMatches('/name .*empty/i');
+        $this->sut::fromString('something', $parser);
+    }
+
     public function testFromString(): void
     {
         // arrange
@@ -208,10 +251,16 @@ class PackageUrlTest extends TestCase
         $parser->expects(self::once())->method('parse')->with($purlString)->willReturn($purlParsed);
         $parser->method('normalizeScheme')->with($purlParsed['scheme'])->willReturn($purlNormalized['scheme']);
         $parser->method('normalizeType')->with($purlParsed['type'])->willReturn($purlNormalized['type']);
-        $parser->method('normalizeNamespace')->with($purlParsed['namespace'], $normalizeWithType)->willReturn($purlNormalized['namespace']);
-        $parser->method('normalizeName')->with($purlParsed['name'], $normalizeWithType)->willReturn($purlNormalized['name']);
+        $parser->method('normalizeNamespace')->with($purlParsed['namespace'], $normalizeWithType)->willReturn(
+            $purlNormalized['namespace']
+        );
+        $parser->method('normalizeName')->with($purlParsed['name'], $normalizeWithType)->willReturn(
+            $purlNormalized['name']
+        );
         $parser->method('normalizeVersion')->with($purlParsed['version'])->willReturn($purlNormalized['version']);
-        $parser->method('normalizeQualifiers')->with($purlParsed['qualifiers'])->willReturn($purlNormalized['qualifiers']);
+        $parser->method('normalizeQualifiers')->with($purlParsed['qualifiers'])->willReturn(
+            $purlNormalized['qualifiers']
+        );
         $parser->method('normalizeSubpath')->with($purlParsed['subpath'])->willReturn($purlNormalized['subpath']);
         // act
         $purl = $this->sut::fromString($purlString, $parser);
@@ -223,6 +272,19 @@ class PackageUrlTest extends TestCase
         self::assertEquals($purlNormalized['version'], $purl->getVersion());
         self::assertEquals($purlNormalized['qualifiers'], $purl->getQualifiers());
         self::assertEquals($purlNormalized['subpath'], $purl->getSubpath());
+    }
+
+    private static function parsedToNulls(): array
+    {
+        return [
+            'scheme' => null,
+            'type' => null,
+            'namespace' => null,
+            'name' => null,
+            'version' => null,
+            'qualifiers' => null,
+            'subpath' => null,
+        ];
     }
 
     // endregion fromString

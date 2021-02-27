@@ -264,17 +264,17 @@ class PackageUrl
         ] = $parser->parse($data);
 
         if (self::SCHEME !== $parser->normalizeScheme($scheme)) {
-            throw new DomainException("mismatching scheme '{$scheme}'");
+            throw new DomainException("Mismatching scheme '{$scheme}'");
         }
 
         $type = $parser->normalizeType($type);
         if (null === $type) {
-            throw new DomainException('type cannot be empty');
+            throw new DomainException('Type must not be empty');
         }
 
         $name = $parser->normalizeName($name, $type);
         if (null === $name) {
-            throw new DomainException('name cannot be empty');
+            throw new DomainException('Name must not be empty');
         }
 
         return (new static($type, $name))
