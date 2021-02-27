@@ -35,6 +35,7 @@ namespace PackageUrl\Tests\unit;
 
 use DomainException;
 use PackageUrl\PackageUrl;
+use PackageUrl\PackageUrlBuilder;
 use PackageUrl\PackageUrlParser;
 use PHPUnit\Framework\TestCase;
 
@@ -288,4 +289,36 @@ class PackageUrlTest extends TestCase
     }
 
     // endregion fromString
+
+    // region toString
+
+    public function testAsString(): void
+    {
+        $expected = bin2hex(random_bytes(32));
+        $sut = $this->createPartialMock(get_class($this->sut), ['toString']);
+        $sut->expects(self::once())->method('toString')->willReturn($expected);
+        $toString = (string) $sut;
+        self::assertEquals($expected, $toString);
+    }
+
+    public function testToString(): void
+    {
+        $expected = bin2hex(random_bytes(32));
+        $builder = $this->createMock(PackageUrlBuilder::class);
+        $builder->expects(self::once())->method('build')
+            ->with(
+                $this->sut::SCHEME,
+                $this->sut->getType(),
+                $this->sut->getName(),
+                $this->sut->getNamespace(),
+                $this->sut->getVersion(),
+                $this->sut->getQualifiers(),
+                $this->sut->getSubpath()
+            )
+            ->willReturn($expected);
+        $asString = $this->sut->toString($builder);
+        self::assertEquals($expected, $asString);
+    }
+
+    // endregion toString
 }
