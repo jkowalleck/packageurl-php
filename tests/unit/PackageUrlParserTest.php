@@ -1,11 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * Copyright (c) the purl authors
+ * SPDX-License-Identifier: MIT
+ * MIT License
+ *
+ * Copyright (c) 2021 package-url
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Visit https://github.com/package-url/packageurl-php
+ * for support and download.
+ */
+
 namespace PackageUrl\Tests\unit;
 
+use Generator;
 use PackageUrl\PackageUrlParser;
 use PHPUnit\Framework\TestCase;
-
-use Generator;
 
 /**
  * @covers \PackageUrl\PackageUrlParser
@@ -17,8 +47,7 @@ use Generator;
  */
 class PackageUrlParserTest extends TestCase
 {
-
-    /** @var PackageUrlParser  */
+    /** @var PackageUrlParser */
     private $sut;
 
     public function setUp(): void
@@ -46,7 +75,6 @@ class PackageUrlParserTest extends TestCase
         self::assertSame($expectedOutput, $normalized);
     }
 
-
     /**
      * @dataProvider dpNormalizeNamespace
      * @dataProvider dpNormalizeNamespaceSpecials
@@ -54,7 +82,7 @@ class PackageUrlParserTest extends TestCase
      *
      * @psalm-param non-empty-string|null $type
      */
-    public function testNormalizeNamespace(?string $input, ?string $expectedOutput, ?string $type=null): void
+    public function testNormalizeNamespace(?string $input, ?string $expectedOutput, ?string $type = null): void
     {
         $normalized = $this->sut->normalizeNamespace($input, $type);
         self::assertSame($expectedOutput, $normalized);
@@ -67,7 +95,7 @@ class PackageUrlParserTest extends TestCase
      *
      * @psalm-param non-empty-string|null $type
      */
-    public function testNormalizeName(?string $input, ?string $expectedOutput, ?string $type=null): void
+    public function testNormalizeName(?string $input, ?string $expectedOutput, ?string $type = null): void
     {
         $normalized = $this->sut->normalizeName($input, $type);
         self::assertSame($expectedOutput, $normalized);
@@ -131,7 +159,7 @@ class PackageUrlParserTest extends TestCase
         if ($data['is_invalid']) {
             self::assertNotSame($expected, $normalized);
         } else {
-            self::assertSame($expected,  $normalized);
+            self::assertSame($expected, $normalized);
         }
     }
 
@@ -141,14 +169,15 @@ class PackageUrlParserTest extends TestCase
     public static function dpNormalizeNamespace(): Generator
     {
         yield 'empty/empty' => ['/', null];
-        yield 'some Namespace' => ['some/Namespace','some/Namespace'];
-        yield 'some/empty Namespace' => ['some//Namespace','some/Namespace'];
+        yield 'some Namespace' => ['some/Namespace', 'some/Namespace'];
+        yield 'some/empty Namespace' => ['some//Namespace', 'some/Namespace'];
         yield 'encoded Namespace' => ['some/Name%20space', 'some/Name space'];
         yield 'complex Namespace' => ['/yet/another//Name%20space/', 'yet/another/Name space'];
     }
 
     /**
      * based on {@link https://github.com/package-url/purl-spec#known-purl-types Known purl types}.
+     *
      * @psalm-return Generator<non-empty-string, array{string, string, non-empty-string}>
      */
     public static function dpNormalizeNamespaceSpecials(): Generator
@@ -163,6 +192,7 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * based on {@link https://github.com/package-url/purl-spec#known-purl-types Known purl types}.
+     *
      * @psalm-return Generator<non-empty-string, array{string, string, non-empty-string}>
      */
     public static function dpNormalizeNameSpecials(): Generator
@@ -176,14 +206,12 @@ class PackageUrlParserTest extends TestCase
         yield 'pypi: underscores' => ['foo_bar', 'foo-bar', 'pypi'];
     }
 
-
-
     /**
      * @psalm-return Generator<non-empty-string, array{string, array<string, string>}>
      */
     public static function dpStringsToDecoded(): Generator
     {
-        yield 'some string' => ['someString','someString'];
+        yield 'some string' => ['someString', 'someString'];
         yield 'encoded string' => ['some%20%22encoded%22%20string', 'some "encoded" string'];
     }
 
@@ -194,10 +222,10 @@ class PackageUrlParserTest extends TestCase
     {
         yield 'some empty value' => ['k=', null];
         yield 'some none value' => ['k', null];
-        yield 'some kv' => ['k=v', ['k'=>'v']];
-        yield 'some KV' => ['k=V', ['k'=>'V']];
-        yield 'some encoded value' => ['k=a%20value', ['k'=>'a value']];
-        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', ['k1'=>'v1', 'k2'=>'v2']];
+        yield 'some kv' => ['k=v', ['k' => 'v']];
+        yield 'some KV' => ['k=V', ['k' => 'V']];
+        yield 'some encoded value' => ['k=a%20value', ['k' => 'a value']];
+        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', ['k1' => 'v1', 'k2' => 'v2']];
     }
 
     /**
@@ -229,9 +257,9 @@ class PackageUrlParserTest extends TestCase
     /**
      * @psalm-return Generator<non-empty-string, array{string|null, string|null}>
      */
-    public static function dpStringsEmptyAndNull(): Generator {
+    public static function dpStringsEmptyAndNull(): Generator
+    {
         yield 'empty' => ['', null];
         yield 'null' => [null, null];
     }
-
 }

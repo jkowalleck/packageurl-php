@@ -2,9 +2,36 @@
 
 declare(strict_types=1);
 
-namespace PackageUrl;
+/*
+ * Copyright (c) the purl authors
+ * SPDX-License-Identifier: MIT
+ * MIT License
+ *
+ * Copyright (c) 2021 package-url
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Visit https://github.com/package-url/packageurl-php
+ * for support and download.
+ */
 
-use DomainException;
+namespace PackageUrl;
 
 /**
  * A purl is a package URL as defined at
@@ -14,7 +41,6 @@ use DomainException;
  */
 class PackageUrlParser
 {
-
     // region parse
 
     /**
@@ -61,9 +87,10 @@ class PackageUrlParser
     private function splitRightOn(string $chr, string $data, bool $rightRequired): array
     {
         $pos = strrpos($data, $chr);
-        if (false !== $pos){
-            return [substr($data, $pos+1), substr($data, 0, $pos)];
+        if (false !== $pos) {
+            return [substr($data, $pos + 1), substr($data, 0, $pos)];
         }
+
         return $rightRequired
             ? [$data, '']
             : [null, $data];
@@ -75,9 +102,10 @@ class PackageUrlParser
     private function splitLeftOn(string $chr, string $data, bool $leftRequired): array
     {
         $pos = strpos($data, $chr);
-        if ( false !== $pos ) {
-            return [substr($data, 0, $pos), substr($data, $pos+1)];
+        if (false !== $pos) {
+            return [substr($data, 0, $pos), substr($data, $pos + 1)];
         }
+
         return $leftRequired
             ? [$data, '']
             : [null, $data];
@@ -85,12 +113,14 @@ class PackageUrlParser
 
     // endregion parse
 
-
     // region normalize
 
     public function normalizeScheme(?string $data): ?string
     {
-        if (null === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
+
         return '' === $data
             ? null
             : strtolower($data);
@@ -101,7 +131,10 @@ class PackageUrlParser
      */
     public function normalizeType(?string $data): ?string
     {
-        if (null === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
+
         return '' === $data
             ? null
             : strtolower($data);
@@ -112,8 +145,12 @@ class PackageUrlParser
      */
     public function normalizeNamespace(?string $data, ?string $type): ?string
     {
-        if (null === $data) { return null; }
-        if ('' === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
+        if ('' === $data) {
+            return null;
+        }
 
         $parts = explode('/', trim($data, '/'));
         $parts = array_filter(
@@ -142,7 +179,6 @@ class PackageUrlParser
         }
 
         return $namespace;
-
     }
 
     /**
@@ -150,7 +186,9 @@ class PackageUrlParser
      */
     public function normalizeName(?string $data, ?string $type): ?string
     {
-        if (null === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
         $name = rawurldecode($data);
         if ('' === $name) {
             return null;
@@ -158,9 +196,10 @@ class PackageUrlParser
 
         $type = null === $type ? null : $this->normalizeType($type);
 
-        if ('pypi' === $type)  {
+        if ('pypi' === $type) {
             /**
-             * note for psalm that the length did not change
+             * note for psalm that the length did not change.
+             *
              * @psalm-var non-empty-string $name
              */
             $name = str_replace('_', '-', $name);
@@ -178,9 +217,12 @@ class PackageUrlParser
      */
     public function normalizeVersion(?string $data): ?string
     {
-        if (null === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
 
         $version = rawurldecode($data);
+
         return '' === $version
             ? null
             : $version;
@@ -191,9 +233,11 @@ class PackageUrlParser
      */
     public function normalizeQualifiers(?string $data): ?array
     {
-        if (null === $data) { return null; }
+        if (null === $data) {
+            return null;
+        }
 
-        if ( '' === $data) {
+        if ('' === $data) {
             return null;
         }
 
@@ -205,7 +249,7 @@ class PackageUrlParser
                 continue;
             }
             $value = rawurldecode(substr($dataKeyValue, $eqPos + 1));
-            if ($value === '') {
+            if ('' === $value) {
                 continue;
             }
             $key = strtolower(substr($dataKeyValue, 0, $eqPos));
@@ -223,8 +267,10 @@ class PackageUrlParser
      */
     public function normalizeSubpath(?string $data): ?string
     {
-        if (null === $data) { return null; }
-        if ( '' === $data) {
+        if (null === $data) {
+            return null;
+        }
+        if ('' === $data) {
             return null;
         }
 
@@ -251,5 +297,4 @@ class PackageUrlParser
     }
 
     // endregion normalize
-
 }
