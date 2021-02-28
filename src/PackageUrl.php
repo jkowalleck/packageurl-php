@@ -271,7 +271,7 @@ class PackageUrl
             'subpath' => $subpath,
         ] = $parser->parse($data);
 
-        if (self::SCHEME !== $parser->normalizeScheme($scheme)) {
+        if (self::SCHEME !== $parser->normalizeScheme((string) $scheme)) {
             throw new DomainException("Mismatching scheme '{$scheme}'");
         }
 

@@ -49,7 +49,7 @@ class PackageUrlBuilder
      * @psalm-param string|null $namespace
      * @psalm-param string $name
      * @psalm-param string|null $version
-     * @psalm-param array|null $qualifiers
+     * @psalm-param mixed[]|null $qualifiers
      * @psalm-param string|null $subpath
      *
      * @throws DomainException if type is empty
@@ -157,6 +157,7 @@ class PackageUrlBuilder
     }
 
     /**
+     * @psalm-param mixed[]|null $data
      * @psalm-return non-empty-string|null
      */
     public function normalizeQualifiers(?array $data): ?string
@@ -165,12 +166,19 @@ class PackageUrlBuilder
             return null;
         }
 
+        if (isset($data['checksum']) && is_array($data['checksum'])) {
+            $data['checksum'] = implode(',', $data['checksum']);
+        }
+
         $segments = [];
+
+        /** @var mixed $value */
         foreach ($data as $key => $value) {
             $key = (string) $key;
-            $value = 'checksum' === $key && is_array($value)
-                ? implode(',', $value)
-                : (string) $value;
+            if ('' === $key) {
+                continue;
+            }
+            $value = (string) $value;
             if ('' === $value) {
                 continue;
             }
