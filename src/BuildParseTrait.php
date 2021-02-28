@@ -33,6 +33,8 @@ declare(strict_types=1);
 
 namespace PackageUrl;
 
+use Closure;
+
 /**
  * @internal
  *
@@ -40,8 +42,42 @@ namespace PackageUrl;
  */
 trait BuildParseTrait
 {
+    private function isNotEmpty(string $data): bool {
+        return '' !== $data;
+    }
+
     private function isUsefulSubpathSegment(string $segment): bool
     {
         return false === in_array($segment, ['', '.', '..'], true);
     }
+
+    private function getNormalizerForNamespace (string $type): Closure {
+        $type = strtolower($type);
+        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)) {
+            return static function (string $data): string {
+                return strtolower($data);
+            };
+        }
+        return static function (string $data): string {
+            return $data;
+        };
+    }
+
+    private function normalizeNameForType (string $name, string $type): string
+    {
+        $type = strtolower($type);
+        if ('pypi' === $type) {
+            /**
+             * note for psalm that the length did not change.
+             * @psalm-var non-empty-string $name
+             */
+            $name = str_replace('_', '-', $name);
+        }
+
+        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)) {
+            $name = strtolower($name);
+        }
+        return $name;
+    }
+
 }

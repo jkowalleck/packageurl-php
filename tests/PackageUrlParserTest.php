@@ -81,7 +81,7 @@ class PackageUrlParserTest extends TestCase
      *
      * @psalm-param non-empty-string|null $type
      */
-    public function testNormalizeNamespace(?string $input, ?string $expectedOutput, ?string $type = null): void
+    public function testNormalizeNamespace(?string $input, ?string $expectedOutput, string $type = ''): void
     {
         $normalized = $this->sut->normalizeNamespace($input, $type);
         self::assertSame($expectedOutput, $normalized);
@@ -94,7 +94,7 @@ class PackageUrlParserTest extends TestCase
      *
      * @psalm-param non-empty-string|null $type
      */
-    public function testNormalizeName(?string $input, ?string $expectedOutput, ?string $type = null): void
+    public function testNormalizeName(?string $input, ?string $expectedOutput, string $type = ''): void
     {
         $normalized = $this->sut->normalizeName($input, $type);
         self::assertSame($expectedOutput, $normalized);

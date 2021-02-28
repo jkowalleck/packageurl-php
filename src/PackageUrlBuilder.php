@@ -56,15 +56,21 @@ class PackageUrlBuilder
      * @psalm-param string|null $namespace
      * @psalm-param string $name
      * @psalm-param string|null $version
-     * @psalm-param string|null $qualifiers
+     * @psalm-param array|null $qualifiers
      * @psalm-param string|null $subpath
      *
      * @psalm-return non-empty-string
      *
      * @TODO see specs & implement
      */
-    public function build(string $type, ?string $namespace, string $name, ?string $version, ?array $qualifiers, ?string $subpath): string
-    {
+    public function build(
+        string $type,
+        ?string $namespace,
+        string $name,
+        ?string $version,
+        ?array $qualifiers,
+        ?string $subpath
+    ): string {
         if ('' === $type) {
             throw new DomainException('Type must not be empty');
         }
@@ -84,8 +90,7 @@ class PackageUrlBuilder
             '/'.$name.
             (null === $version ? '' : '@'.$version).
             (null === $qualifiers ? '' : '?'.$qualifiers).
-            (null === $subpath ? '' : '#'.$subpath)
-            ;
+            (null === $subpath ? '' : '#'.$subpath);
     }
 
     // endregion build
@@ -112,8 +117,10 @@ class PackageUrlBuilder
 
         $data = trim($data, '/');
         $segments = explode('/', $data);
-        // @TODO Apply type-specific normalization to each segment if needed
+        $segments = array_filter($segments, [$this, 'isNotEmpty']);
+        $segments = array_map($this->getNormalizerForNamespace($type), $segments);
         $segments = array_map([$this, 'encode'], $segments);
+
         $namespace = implode('/', $segments);
 
         return '' === $namespace
@@ -127,7 +134,8 @@ class PackageUrlBuilder
     public function normalizeName(string $data, string $type): string
     {
         $data = trim($data, '/');
-        // @TODO Apply type-specific normalization to each segment if needed
+        $data = $this->normalizeNameForType($data, $type);
+
         return $this->encode($data);
     }
 
@@ -160,7 +168,7 @@ class PackageUrlBuilder
             if ('checksum' === $key && is_array($value)) {
                 $value = implode(',', $value);
             }
-            $qualifiers[] = strtolower((string) $key).'='.$this->encode((string) $value);
+            $qualifiers[] = strtolower((string)$key).'='.$this->encode((string)$value);
         }
 
         if (0 === count($qualifiers)) {

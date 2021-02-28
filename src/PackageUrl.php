@@ -46,6 +46,8 @@ use DomainException;
  * @psalm-type TQualifiers = null|array<non-empty-string, non-empty-string>
  * @psalm-type TSubpath = non-empty-string|null
  *
+ * @TODO add checksum as array of string
+ *
  * @author jkowalleck
  */
 class PackageUrl

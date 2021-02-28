@@ -38,6 +38,8 @@ namespace PackageUrl;
  * {@link https://github.com/package-url/purl-spec}.
  *
  * @author jkowalleck
+ *
+ * @TODO addd proper types from model
  */
 class PackageUrlParser
 {
@@ -154,30 +156,14 @@ class PackageUrlParser
             return null;
         }
 
-        $parts = explode('/', trim($data, '/'));
-        $parts = array_filter(
-            $parts,
-            static function (string $part): bool {
-                return '' !== $part;
-            }
-        );
-        $parts = array_map(
-            static function (string $part): string {
-                // utf8 encode transcode was left out for now, most php is running is utf8 already
-                return rawurldecode($part);
-            },
-            $parts
-        );
+        $segments = explode('/', trim($data, '/'));
+        $segments = array_filter($segments, [$this, 'isNotEmpty']);
+        $segments = array_map('rawurldecode', $segments);
+        $segments = array_map($this->getNormalizerForNamespace($type), $segments);
 
-        $namespace = implode('/', $parts);
+        $namespace = implode('/', $segments);
         if ('' === $namespace) {
             return null;
-        }
-
-        $type = null === $type ? null : $this->normalizeType($type);
-
-        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)) {
-            $namespace = strtolower($namespace);
         }
 
         return $namespace;
@@ -196,22 +182,7 @@ class PackageUrlParser
             return null;
         }
 
-        $type = null === $type ? null : $this->normalizeType($type);
-
-        if ('pypi' === $type) {
-            /**
-             * note for psalm that the length did not change.
-             *
-             * @psalm-var non-empty-string $name
-             */
-            $name = str_replace('_', '-', $name);
-        }
-
-        if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)) {
-            $name = strtolower($name);
-        }
-
-        return $name;
+        return $this->normalizeNameForType($name, $type);
     }
 
     /**
