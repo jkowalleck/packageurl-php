@@ -40,7 +40,6 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \PackageUrl\PackageUrlParser
  *
- * @psalm-import-type TParsedTypeNamespaceNameVersion from PackageUrlParser
  * @psalm-import-type TDataSet from \PackageUrl\Tests\_data\TestSuiteData
  *
  * @author jkowalleck

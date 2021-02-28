@@ -31,47 +31,63 @@ declare(strict_types=1);
  * for support and download.
  */
 
-namespace PackageUrl\Tests\_data;
+namespace PackageUrl\Tests;
 
 use Generator;
+use PackageUrl\PackageUrl;
+use PackageUrl\PackageUrlBuilder;
+use PackageUrl\Tests\_data\TestSuiteData;
+use PHPUnit\Framework\TestCase;
+use DomainException;
 
 /**
- * @psalm-type TDataSet = array{
- *      description: string,
- *      purl: string,
- *      canonical_purl: string,
- *      type: string|null,
- *      namespace: string|null,
- *      name: string|null,
- *      version: string|null,
- *      qualifiers: string|null,
- *      subpath: string|null,
- *      is_invalid: bool
- *  }
+ * @covers \PackageUrl\PackageUrlBuilder
+ *
+ * @psalm-import-type TDataSet from \PackageUrl\Tests\_data\TestSuiteData
+ *
+ * @author jkowalleck
  */
-abstract class TestSuiteData
+class PackageUrlBuilderTest extends TestCase
 {
+    /** @var PackageUrlBuilder */
+    private $sut;
+
+    public function setUp(): void
+    {
+        $this->sut = new PackageUrlBuilder();
+    }
+
     /**
-     * data example
-     *  - "description": "valid maven purl",
-     *  - "purl": "pkg:maven/org.apache.commons/io@1.3.4",
-     *  - "canonical_purl": "pkg:maven/org.apache.commons/io@1.3.4",
-     *  - "type": "maven",
-     *  - "namespace": "org.apache.commons",
-     *  - "name": "io",
-     *  - "version": "1.3.4",
-     *  - "qualifiers": null,
-     *  - "subpath": null,
-     *  - "is_invalid": false,
-     * .
-     *
+     * @dataProvider dpValidTestData
+     * @psalm-param TDataSet $data
+     */
+    public function testBuild(array $data): void
+    {
+        $expected = $data['canonical_purl'];
+        $built = $this->sut->build(
+            $data['type'],
+            $data['namespace'],
+            $data['name'],
+            $data['version'],
+            $data['qualifiers'],
+            $data['subpath'],
+        );
+
+        self::assertEquals($expected, $built);
+
+    }
+
+    /**
      * @psalm-return Generator<non-empty-string, array{TDataSet}>
      */
-    public static function data(): Generator
+    public static function dpValidTestData(): Generator
     {
-        $testSuite = json_decode(file_get_contents(__DIR__.'/../_examples/test-suite-data.json'), true, 521, JSON_THROW_ON_ERROR);
-        foreach ($testSuite as $data) {
-            yield $data['description'] => [$data];
+        foreach (TestSuiteData::data() as $label => [$data]) {
+            if (true === $data['is_invalid']) {
+                continue;
+            }
+            yield $label => [$data];
         }
     }
+
 }

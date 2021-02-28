@@ -231,7 +231,6 @@ class PackageUrl
         $builder = $builder ?? new PackageUrlBuilder();
 
         return $builder->build(
-            self::SCHEME,
             $this->type,
             $this->namespace,
             $this->name,

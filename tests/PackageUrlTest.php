@@ -307,7 +307,6 @@ class PackageUrlTest extends TestCase
         $builder = $this->createMock(PackageUrlBuilder::class);
         $builder->expects(self::once())->method('build')
             ->with(
-                $this->sut::SCHEME,
                 $this->sut->getType(),
                 $this->sut->getName(),
                 $this->sut->getNamespace(),

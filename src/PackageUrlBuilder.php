@@ -33,6 +33,8 @@ declare(strict_types=1);
 
 namespace PackageUrl;
 
+use DomainException;
+
 /**
  * @psalm-import-type TType from PackageUrl
  * @psalm-import-type TNamespace from PackageUrl
@@ -46,26 +48,143 @@ namespace PackageUrl;
 class PackageUrlBuilder
 {
     /**
-     * @psalm-param non-empty-string $scheme
-     * @psalm-param TType $type
-     * @psalm-param TNamespace $namespace
-     * @psalm-param TName $name
-     * @psalm-param TVersion $version
-     * @psalm-param TQualifiers $qualifiers
-     * @psalm-param TSubpath $subpath
+     * @psalm-param string $type
+     * @psalm-param string|null $namespace
+     * @psalm-param string $name
+     * @psalm-param string|null $version
+     * @psalm-param string|null $qualifiers
+     * @psalm-param string|null $subpath
      *
      * @psalm-return non-empty-string
      *
      * @TODO see specs & implement
      */
-    public function build(string $scheme, string $type, ?string $namespace, string $name, ?string $version, ?array $qualifiers, ?string $subpath): string
+    public function build(string $type, ?string $namespace, string $name, ?string $version, ?array $qualifiers, ?string $subpath): string
     {
-        return $scheme.
-        ':'.$type.
-        (null === $namespace ? '' : '/'.rawurlencode($namespace)).
-        '/'.rawurlencode($name).
-        (null === $version ? '' : '@'.rawurlencode($version)).
-        (null === $qualifiers || 0 === count($qualifiers) ? '' : '?'.http_build_query($qualifiers)).
-        (null === $subpath ? '' : '#'.$subpath);
+        if ('' === $type) {
+            throw new DomainException("Type must not be empty");
+        }
+        if ('' === $name) {
+            throw new DomainException("Name must not be empty");
+        }
+        $type = $this->normalizeType($type);
+        $namespace = $this->normalizeNamespace($namespace, $type);
+        $name = $this->normalizeName($name, $type);
+        $version = $this->normalizeVersion($version);
+        $qualifiers = $this->normalizeQualifiers($qualifiers);
+        $subpath = $this->normalizeSubpath($subpath);
+        return PackageUrl::SCHEME.
+            ':'. $type.
+            (null === $namespace ? '' : '/'.$namespace).
+            '/'.$name.
+            (null === $version ? '' : '@'.$version).
+            (null === $qualifiers ? '' : '?'.$qualifiers).
+            (null === $subpath ? '' : '#'.$subpath)
+            ;
+    }
+
+    /**
+     * @psalm-param non-empty-string $data
+     * @psalm-return non-empty-string
+     */
+    public function normalizeType(string $data): string
+    {
+        return strtolower($data);
+    }
+
+    /**
+     * @psalm-return non-empty-string|null
+     */
+    public function normalizeNamespace(?string $data, string $type): ?string {
+        if ($data === null) { return null;}
+
+        $data = trim($data, '/');
+        $segments = explode('/', $data);
+        // @TODO Apply type-specific normalization to each segment if needed
+        $segments = array_map([$this, 'encode'], $segments);
+        $namespace = implode('/', $segments);
+
+        return '' === $namespace
+            ? null
+            : $namespace;
+    }
+
+    /**
+     * @psalm-param non-empty-string $data
+     */
+    public function normalizeName(string $data, string $type): string
+    {
+        $data = trim($data, '/');
+        // @TODO Apply type-specific normalization to each segment if needed
+        return $this->encode($data);
+    }
+
+    /**
+     * @psalm-return non-empty-string|null
+     */
+    public function normalizeVersion(?string $data): ?string
+    {
+        if ($data === null) { return null;}
+
+        return $this->encode($data);
+    }
+
+    /**
+     * @psalm-return non-empty-string|null
+     */
+    public function normalizeQualifiers(?array $data): ?string
+    {
+        if ($data === null) { return null;}
+
+        $qualifiers = [];
+        foreach ($data as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            if ('checksum' === $key && is_array($value)) {
+                $value = implode(',', $value);
+            }
+            $qualifiers[] = strtolower((string) $key) . '='. $this->encode((string) $value);
+        }
+
+        if (0 === count($qualifiers) ) {
+            return null;
+        }
+        sort($qualifiers, SORT_STRING);
+        return implode('&', $qualifiers);
+    }
+
+    use BuildParseTrait;
+
+    /**
+     * @psalm-return non-empty-string|null
+     */
+    public function normalizeSubpath(?string $data): ?string
+    {
+        if ($data === null) { return null;}
+        $data = trim($data, '/');
+        $segments = explode('/', $data);
+        /** @see BuildParseTrait::isUsefulSubpathSegment() */
+        $segments = array_filter($segments, [$this, 'isUsefulSubpathSegment']);
+        $segments = array_map([$this, 'encode'], $segments);
+        if (0 === count($segments) ) {
+            return null;
+        }
+        return implode('/', $segments);
+    }
+
+    /**
+     * Revert special chars that must not be encoded.
+     * See {@link https://github.com/package-url/purl-spec#character-encoding Character encoding}.
+     */
+    private const RAWURLENCODE_REVERT = [
+        '%3A' => ':',
+        '%2F' => '/'
+    ];
+
+    private function encode(string $data): string
+    {
+        $data = rawurlencode($data);
+        return strtr($data, self::RAWURLENCODE_REVERT);
     }
 }

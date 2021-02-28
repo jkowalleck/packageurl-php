@@ -262,6 +262,8 @@ class PackageUrlParser
             : $qualifiers;
     }
 
+    use BuildParseTrait;
+
     /**
      * @psalm-return non-empty-string|null
      */
@@ -274,22 +276,11 @@ class PackageUrlParser
             return null;
         }
 
-        $parts = explode('/', trim($data, '/'));
-        $parts = array_filter(
-            $parts,
-            static function (string $part): bool {
-                return false === in_array($part, ['', '.', '..'], true);
-            }
-        );
-        $parts = array_map(
-            static function (string $part): string {
-                // utf8 encode transcode was left out for now, most php is running is utf8 already
-                return rawurldecode($part);
-            },
-            $parts
-        );
-
-        $subpath = implode('/', $parts);
+        $segments = explode('/', trim($data, '/'));
+        /** @see BuildParseTrait::isUsefulSubpathSegment() */
+        $segments = array_filter($segments, [$this, 'isUsefulSubpathSegment']);
+        $segments = array_map('rawurldecode', $segments);
+        $subpath = implode('/', $segments);
 
         return '' === $subpath
             ? null
