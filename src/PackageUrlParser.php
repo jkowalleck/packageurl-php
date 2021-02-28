@@ -37,6 +37,13 @@ namespace PackageUrl;
  * A purl is a package URL as defined at
  * {@link https://github.com/package-url/purl-spec}.
  *
+ * @psalm-import-type TType from PackageUrl
+ * @psalm-import-type TNamespace from PackageUrl
+ * @psalm-import-type TName from PackageUrl
+ * @psalm-import-type TVersion from PackageUrl
+ * @psalm-import-type TQualifiers from PackageUrl
+ * @psalm-import-type TSubpath from PackageUrl
+ *
  * @author jkowalleck
  *
  * @TODO addd proper types from model
@@ -119,6 +126,9 @@ class PackageUrlParser
 
     // region normalize
 
+    /**
+     * @psalm-return non-empty-string|null
+     */
     public function normalizeScheme(?string $data): ?string
     {
         if (null === $data) {
@@ -131,7 +141,7 @@ class PackageUrlParser
     }
 
     /**
-     * @return non-empty-string|null
+     * @psalm-return TType|null
      */
     public function normalizeType(?string $data): ?string
     {
@@ -145,7 +155,7 @@ class PackageUrlParser
     }
 
     /**
-     * @return non-empty-string|null
+     * @psalm-return TNamespace
      */
     public function normalizeNamespace(?string $data, ?string $type): ?string
     {
@@ -157,8 +167,8 @@ class PackageUrlParser
         }
 
         $segments = explode('/', trim($data, '/'));
-        $segments = array_filter($segments, [$this, 'isNotEmpty']);
         $segments = array_map('rawurldecode', $segments);
+        $segments = array_filter($segments, [$this, 'isNotEmpty']);
         $segments = array_map($this->getNormalizerForNamespace($type), $segments);
 
         $namespace = implode('/', $segments);
@@ -170,7 +180,7 @@ class PackageUrlParser
     }
 
     /**
-     * @return non-empty-string|null
+     * @return TName|null
      */
     public function normalizeName(?string $data, ?string $type): ?string
     {
@@ -186,7 +196,7 @@ class PackageUrlParser
     }
 
     /**
-     * @return non-empty-string|null
+     * @return TVersion
      */
     public function normalizeVersion(?string $data): ?string
     {
@@ -202,7 +212,7 @@ class PackageUrlParser
     }
 
     /**
-     * @psalm-return non-empty-array<non-empty-string, non-empty-string>|null
+     * @psalm-return TQualifiers
      */
     public function normalizeQualifiers(?string $data): ?array
     {
@@ -236,7 +246,7 @@ class PackageUrlParser
     }
 
     /**
-     * @psalm-return non-empty-string|null
+     * @psalm-return TSubpath
      */
     public function normalizeSubpath(?string $data): ?string
     {

@@ -36,13 +36,6 @@ namespace PackageUrl;
 use DomainException;
 
 /**
- * @psalm-import-type TType from PackageUrl
- * @psalm-import-type TNamespace from PackageUrl
- * @psalm-import-type TName from PackageUrl
- * @psalm-import-type TVersion from PackageUrl
- * @psalm-import-type TQualifiers from PackageUrl
- * @psalm-import-type TSubpath from PackageUrl
- *
  * @author jkowalleck
  */
 class PackageUrlBuilder
@@ -59,9 +52,10 @@ class PackageUrlBuilder
      * @psalm-param array|null $qualifiers
      * @psalm-param string|null $subpath
      *
-     * @psalm-return non-empty-string
+     * @throws DomainException if type is empty
+     * @throws DomainException if name is empty
      *
-     * @TODO see specs & implement
+     * @psalm-return non-empty-string
      */
     public function build(
         string $type,
@@ -77,6 +71,7 @@ class PackageUrlBuilder
         if ('' === $name) {
             throw new DomainException('Name must not be empty');
         }
+
         $type = $this->normalizeType($type);
         $namespace = $this->normalizeNamespace($namespace, $type);
         $name = $this->normalizeName($name, $type);
@@ -107,6 +102,8 @@ class PackageUrlBuilder
     }
 
     /**
+     * @psalm-param non-empty-string $type
+     *
      * @psalm-return non-empty-string|null
      */
     public function normalizeNamespace(?string $data, string $type): ?string
@@ -129,11 +126,17 @@ class PackageUrlBuilder
     }
 
     /**
-     * @psalm-param non-empty-string $data
+     * @psalm-param string $data
+     * @psalm-param non-empty-string $type
+     *
+     * @throws DomainException if name is empty
      */
     public function normalizeName(string $data, string $type): string
     {
         $data = trim($data, '/');
+        if ('' === $data) {
+            throw new DomainException('name must not be empty');
+        }
         $data = $this->normalizeNameForType($data, $type);
 
         return $this->encode($data);
@@ -148,7 +151,9 @@ class PackageUrlBuilder
             return null;
         }
 
-        return $this->encode($data);
+        return '' === $data
+            ? null
+            : $this->encode($data);
     }
 
     /**
@@ -160,23 +165,24 @@ class PackageUrlBuilder
             return null;
         }
 
-        $qualifiers = [];
+        $segments = [];
         foreach ($data as $key => $value) {
+            $key = (string) $key;
+            $value = 'checksum' === $key && is_array($value)
+                ? implode(',', $value)
+                : (string) $value;
             if (null === $value || '' === $value) {
                 continue;
             }
-            if ('checksum' === $key && is_array($value)) {
-                $value = implode(',', $value);
-            }
-            $qualifiers[] = strtolower((string)$key).'='.$this->encode((string)$value);
+            $segments[] = strtolower($key).'='.$this->encode($value);
         }
 
-        if (0 === count($qualifiers)) {
-            return null;
-        }
-        sort($qualifiers, SORT_STRING);
+        sort($segments, SORT_STRING);
+        $qualifiers = implode('&', $segments);
 
-        return implode('&', $qualifiers);
+        return '' === $qualifiers
+            ? null
+            : $qualifiers;
     }
 
     /**
@@ -188,15 +194,17 @@ class PackageUrlBuilder
             return null;
         }
         $data = trim($data, '/');
+
         $segments = explode('/', $data);
         /** @see BuildParseTrait::isUsefulSubpathSegment() */
         $segments = array_filter($segments, [$this, 'isUsefulSubpathSegment']);
         $segments = array_map([$this, 'encode'], $segments);
-        if (0 === count($segments)) {
-            return null;
-        }
 
-        return implode('/', $segments);
+        $subpath = implode('/', $segments);
+
+        return '' === $subpath
+            ? null
+            : $subpath;
     }
 
     // endregion normalize
@@ -206,17 +214,27 @@ class PackageUrlBuilder
     /**
      * Revert special chars that must not be encoded.
      * See {@link https://github.com/package-url/purl-spec#character-encoding Character encoding}.
+     *
+     * @var array<non-empty-string, non-empty-string>
      */
     private const RAWURLENCODE_REVERT = [
         '%3A' => ':',
         '%2F' => '/',
     ];
 
+    /**
+     * @psalm-param non-empty-string $data
+     * @psalm-return non-empty-string
+     */
     private function encode(string $data): string
     {
-        $data = rawurlencode($data);
+        $encoded = strtr(
+            rawurlencode($data),
+            self::RAWURLENCODE_REVERT
+        );
+        assert('' !== $encoded);
 
-        return strtr($data, self::RAWURLENCODE_REVERT);
+        return $encoded;
     }
 
     // endregion encode

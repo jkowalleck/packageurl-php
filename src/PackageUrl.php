@@ -43,7 +43,7 @@ use DomainException;
  * @psalm-type TNamespace = non-empty-string|null
  * @psalm-type TName = non-empty-string
  * @psalm-type TVersion = non-empty-string|null
- * @psalm-type TQualifiers = null|array<non-empty-string, non-empty-string>
+ * @psalm-type TQualifiers = null|non-empty-array<non-empty-string, non-empty-string>
  * @psalm-type TSubpath = non-empty-string|null
  *
  * @TODO add checksum as array of string
@@ -222,12 +222,19 @@ class PackageUrl
     /**
      * implementation is not yet completely conform to
      * {@link https://github.com/package-url/purl-spec/blob/master/README.rst#a-purl-is-a-url}.
+     *
+     * @psalm-return non-empty-string
      */
     public function __toString(): string
     {
         return $this->toString();
     }
 
+    /**
+     * @psalm-return non-empty-string
+     *
+     * @psalm-suppress MissingThrowsDocblock since DomainExceptions are impossible due to internal assertions.
+     */
     public function toString(?PackageUrlBuilder $builder = null): string
     {
         $builder = $builder ?? new PackageUrlBuilder();

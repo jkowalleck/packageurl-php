@@ -42,33 +42,55 @@ use Closure;
  */
 trait BuildParseTrait
 {
-    private function isNotEmpty(string $data): bool {
+    /**
+     * @psalm-assert-if-true non-empty-string $data
+     */
+    private function isNotEmpty(string $data): bool
+    {
         return '' !== $data;
     }
 
+    /**
+     * @psalm-assert-if-true non-empty-string $segment
+     */
     private function isUsefulSubpathSegment(string $segment): bool
     {
         return false === in_array($segment, ['', '.', '..'], true);
     }
 
-    private function getNormalizerForNamespace (string $type): Closure {
-        $type = strtolower($type);
+    /**
+     * @psalm-return Closure(non-empty-string):non-empty-string
+     */
+    private function getNormalizerForNamespace(?string $type): Closure
+    {
+        if (null !== $type) {
+            $type = strtolower($type);
+        }
         if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'rpm'], true)) {
             return static function (string $data): string {
                 return strtolower($data);
             };
         }
+
         return static function (string $data): string {
             return $data;
         };
     }
 
-    private function normalizeNameForType (string $name, string $type): string
+    /**
+     * @psalm-param  non-empty-string $name
+     *
+     * @return non-empty-string
+     */
+    private function normalizeNameForType(string $name, ?string $type): string
     {
-        $type = strtolower($type);
+        if (null !== $type) {
+            $type = strtolower($type);
+        }
         if ('pypi' === $type) {
             /**
              * note for psalm that the length did not change.
+             *
              * @psalm-var non-empty-string $name
              */
             $name = str_replace('_', '-', $name);
@@ -77,7 +99,7 @@ trait BuildParseTrait
         if (in_array($type, ['bitbucket', 'deb', 'github', 'golang', 'hex', 'npm', 'pypi'], true)) {
             $name = strtolower($name);
         }
+
         return $name;
     }
-
 }
