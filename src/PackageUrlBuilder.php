@@ -171,7 +171,7 @@ class PackageUrlBuilder
             $value = 'checksum' === $key && is_array($value)
                 ? implode(',', $value)
                 : (string) $value;
-            if (null === $value || '' === $value) {
+            if ('' === $value) {
                 continue;
             }
             $segments[] = strtolower($key).'='.$this->encode($value);

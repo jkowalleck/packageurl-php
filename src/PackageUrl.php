@@ -213,7 +213,7 @@ class PackageUrl
      * @see settype()
      * @see setName()
      */
-    public function __construct(string $type, string $name)
+    final public function __construct(string $type, string $name)
     {
         $this->setType($type);
         $this->setName($name);
