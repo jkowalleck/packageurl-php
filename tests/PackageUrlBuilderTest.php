@@ -34,11 +34,9 @@ declare(strict_types=1);
 namespace PackageUrl\Tests;
 
 use Generator;
-use PackageUrl\PackageUrl;
 use PackageUrl\PackageUrlBuilder;
 use PackageUrl\Tests\_data\TestSuiteData;
 use PHPUnit\Framework\TestCase;
-use DomainException;
 
 /**
  * @covers \PackageUrl\PackageUrlBuilder
@@ -74,7 +72,6 @@ class PackageUrlBuilderTest extends TestCase
         );
 
         self::assertEquals($expected, $built);
-
     }
 
     /**
@@ -89,5 +86,4 @@ class PackageUrlBuilderTest extends TestCase
             yield $label => [$data];
         }
     }
-
 }

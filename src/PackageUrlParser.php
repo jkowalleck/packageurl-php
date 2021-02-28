@@ -41,6 +41,8 @@ namespace PackageUrl;
  */
 class PackageUrlParser
 {
+    use BuildParseTrait;
+
     // region parse
 
     /**
@@ -261,8 +263,6 @@ class PackageUrlParser
             ? null
             : $qualifiers;
     }
-
-    use BuildParseTrait;
 
     /**
      * @psalm-return non-empty-string|null
