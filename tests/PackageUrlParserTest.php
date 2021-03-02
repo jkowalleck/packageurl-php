@@ -55,8 +55,8 @@ class PackageUrlParserTest extends TestCase
     }
 
     /**
-     * @dataProvider dpStringsToLowercase
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsToLowercase
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
     public function testNormalizeScheme(?string $input, ?string $expectedOutput): void
     {
@@ -65,8 +65,8 @@ class PackageUrlParserTest extends TestCase
     }
 
     /**
-     * @dataProvider dpStringsToLowercase
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsToLowercase
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
     public function testNormalizeType(?string $input, ?string $expectedOutput): void
     {
@@ -76,8 +76,8 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeNamespace
-     * @dataProvider dpNormalizeNamespaceSpecials
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::normalizeNamespaceSpecials()
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      *
      * @psalm-param non-empty-string|null $type
      */
@@ -88,9 +88,9 @@ class PackageUrlParserTest extends TestCase
     }
 
     /**
-     * @dataProvider dpNormalizeNameSpecials
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::normalizeNameSpecials
      * @dataProvider dpStringsToDecoded
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      *
      * @psalm-param non-empty-string|null $type
      */
@@ -102,7 +102,7 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpStringsToDecoded
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
     public function testNormalizeVersion(?string $input, ?string $expectedOutput): void
     {
@@ -112,7 +112,7 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeQualifiers
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
     public function testNormalizeQualifiers(?string $input, ?array $expectedOutcome): void
     {
@@ -122,7 +122,7 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeSubpath
-     * @dataProvider dpStringsEmptyAndNull
+     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
     public function testNormalizeSubpath(?string $input, ?string $expectedOutcome): void
     {
@@ -175,37 +175,6 @@ class PackageUrlParserTest extends TestCase
     }
 
     /**
-     * based on {@link https://github.com/package-url/purl-spec#known-purl-types Known purl types}.
-     *
-     * @psalm-return Generator<non-empty-string, array{string, string, non-empty-string}>
-     */
-    public static function dpNormalizeNamespaceSpecials(): Generator
-    {
-        yield 'bitbucket: lowercase' => ['FoO', 'foo', 'bitbucket'];
-        yield 'deb: lowercase' => ['FoO', 'foo', 'deb'];
-        yield 'github: lowercase' => ['FoO', 'foo', 'github'];
-        yield 'golang: lowercase' => ['FoO', 'foo', 'golang'];
-        yield 'hex: lowercase' => ['FoO', 'foo', 'hex'];
-        yield 'rpm: lowercase' => ['FoO', 'foo', 'rpm'];
-    }
-
-    /**
-     * based on {@link https://github.com/package-url/purl-spec#known-purl-types Known purl types}.
-     *
-     * @psalm-return Generator<non-empty-string, array{string, string, non-empty-string}>
-     */
-    public static function dpNormalizeNameSpecials(): Generator
-    {
-        yield 'bitbucket: lowercase' => ['FoO', 'foo', 'bitbucket'];
-        yield 'deb: lowercase' => ['FoO', 'foo', 'deb'];
-        yield 'github: lowercase' => ['FoO', 'foo', 'github'];
-        yield 'golang: lowercase' => ['FoO', 'foo', 'golang'];
-        yield 'hex: lowercase' => ['FoO', 'foo', 'hex'];
-        yield 'pypi: lowercase' => ['FoO', 'foo', 'pypi'];
-        yield 'pypi: underscores' => ['foo_bar', 'foo-bar', 'pypi'];
-    }
-
-    /**
      * @psalm-return Generator<non-empty-string, array{string, array<string, string>}>
      */
     public static function dpStringsToDecoded(): Generator
@@ -222,7 +191,7 @@ class PackageUrlParserTest extends TestCase
         yield 'some empty value' => ['k=', null];
         yield 'some none value' => ['k', null];
         yield 'some kv' => ['k=v', ['k' => 'v']];
-        yield 'some KV' => ['k=V', ['k' => 'V']];
+        yield 'some KV' => ['K=V', ['k' => 'V']];
         yield 'some encoded value' => ['k=a%20value', ['k' => 'a value']];
         yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', ['k1' => 'v1', 'k2' => 'v2']];
     }
@@ -241,24 +210,5 @@ class PackageUrlParserTest extends TestCase
         yield 'encoded' => ['some%20path/', 'some path'];
         yield 'complex' => ['//.foo/./bar./..//Baz%20ooF/', '.foo/bar./Baz ooF'];
         yield 'dot complex' => ['/./..//./', null];
-    }
-
-    /**
-     * @psalm-return Generator<non-empty-string, array{non-empty-string, non-empty-string}>
-     */
-    public static function dpStringsToLowercase(): Generator
-    {
-        yield 'lowercase' => ['something', 'something'];
-        yield 'UPPERCASE' => ['SOMETHING', 'something'];
-        yield 'mIxeDCase' => ['sOmetHIng', 'something'];
-    }
-
-    /**
-     * @psalm-return Generator<non-empty-string, array{string|null, string|null}>
-     */
-    public static function dpStringsEmptyAndNull(): Generator
-    {
-        yield 'empty' => ['', null];
-        yield 'null' => [null, null];
     }
 }

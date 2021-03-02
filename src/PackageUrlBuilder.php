@@ -166,11 +166,12 @@ class PackageUrlBuilder
             return null;
         }
 
-        if (isset($data['checksum']) && is_array($data['checksum'])) {
-            $data['checksum'] = implode(',', $data['checksum']);
-        }
-
         $segments = [];
+
+        $data = array_change_key_case($data, CASE_LOWER);
+
+        $checksum = $this->normalizeChecksum($data['checksum'] ?? null);
+        unset($data['checksum']);
 
         /** @var mixed $value */
         foreach ($data as $key => $value) {
@@ -182,7 +183,11 @@ class PackageUrlBuilder
             if ('' === $value) {
                 continue;
             }
-            $segments[] = strtolower($key).'='.$this->encode($value);
+            $segments[] = $key.'='.$this->encode($value);
+        }
+
+        if (null !== $checksum) {
+            $segments[] = 'checksum='.$checksum;
         }
 
         sort($segments, SORT_STRING);
@@ -191,6 +196,37 @@ class PackageUrlBuilder
         return '' === $qualifiers
             ? null
             : $qualifiers;
+    }
+
+    /**
+     * @psalm-param  mixed $data
+     * @psalm-return non-empty-string|null
+     */
+    private function normalizeChecksum($data): ?string
+    {
+        if (null === $data) {
+            return null;
+        }
+        if (is_string($data)) {
+            $data = explode(',', $data);
+        } elseif (!is_array($data)) {
+            return null;
+        }
+
+        $checksums = [];
+        /** @var mixed $checksum */
+        foreach ($data as $checksum) {
+            $checksum = (string) $checksum;
+            if ('' === $checksum) {
+                continue;
+            }
+            $checksums[] = $this->encode($checksum);
+        }
+        $checksum = implode(',', $checksums);
+
+        return '' === $checksum
+            ? null
+            : $checksum;
     }
 
     /**
