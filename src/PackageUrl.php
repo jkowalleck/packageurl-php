@@ -54,6 +54,8 @@ class PackageUrl
 {
     public const SCHEME = 'pkg';
 
+    public const CHECKSUM_QUALIFIER = 'checksum';
+
     /**
      * @psalm-var TType
      * @psalm-suppress PropertyNotSetInConstructor
