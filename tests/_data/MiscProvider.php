@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 /*
- * Copyright (c) the purl authors
- * SPDX-License-Identifier: MIT
  * MIT License
  *
  * Copyright (c) 2021 package-url
@@ -27,8 +25,6 @@ declare(strict_types=1);
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * Visit https://github.com/package-url/packageurl-php
- * for support and download.
  */
 
 namespace PackageUrl\Tests\_data;

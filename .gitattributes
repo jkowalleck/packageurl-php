@@ -2,7 +2,6 @@
 
 *.md          diff=markdown
 *.php         diff=php
-composer.lock diff=json
 .php_cs       diff=php
 .php_cs.dist  diff=php
 *.xml.dist    diff=xml

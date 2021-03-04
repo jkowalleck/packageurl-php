@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 /*
- * Copyright (c) the purl authors
- * SPDX-License-Identifier: MIT
  * MIT License
  *
  * Copyright (c) 2021 package-url
@@ -27,22 +25,9 @@ declare(strict_types=1);
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * Visit https://github.com/package-url/packageurl-php
- * for support and download.
  */
 
-// @TODO reformat this stuff
-$header = <<<'EOHH'
-    Copyright (c) the purl authors
-    SPDX-License-Identifier: MIT
-
-    EOHH
-.file_get_contents(__DIR__.'/LICENSE')
-.<<<'OEHF'
-
-    Visit https://github.com/package-url/packageurl-php
-    for support and download.
-    OEHF;
+$header = file_get_contents(__DIR__.'/LICENSE');
 
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__.'/src')
