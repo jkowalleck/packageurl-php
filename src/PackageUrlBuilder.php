@@ -171,7 +171,7 @@ class PackageUrlBuilder
         $data = array_change_key_case($data, CASE_LOWER);
 
         $checksum = $this->normalizeChecksum($data[PackageUrl::CHECKSUM_QUALIFIER] ?? null);
-        unset($data['checksum']);
+        unset($data[PackageUrl::CHECKSUM_QUALIFIER]);
 
         /** @var mixed $value */
         foreach ($data as $key => $value) {

@@ -42,6 +42,7 @@ namespace PackageUrl;
  * @psalm-import-type TName from PackageUrl
  * @psalm-import-type TVersion from PackageUrl
  * @psalm-import-type TQualifiers from PackageUrl
+ * @psalm-import-type TChecksums from PackageUrl
  * @psalm-import-type TSubpath from PackageUrl
  *
  * @author jkowalleck
@@ -212,16 +213,16 @@ class PackageUrlParser
     }
 
     /**
-     * @psalm-return TQualifiers
+     * @psalm-return array{TQualifiers, TChecksums}
      */
-    public function normalizeQualifiers(?string $data): ?array
+    public function normalizeQualifiers(?string $data): array
     {
         if (null === $data) {
-            return null;
+            return [null, null];
         }
 
         if ('' === $data) {
-            return null;
+            return [null, null];
         }
 
         /** @var array<non-empty-string, non-empty-string> $qualifiers */
@@ -240,9 +241,16 @@ class PackageUrlParser
             $qualifiers[$key] = $value;
         }
 
+        if (isset($qualifiers[PackageUrl::CHECKSUM_QUALIFIER])) {
+            $checksums = null;
+        } else {
+            $checksums = explode(',', $qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
+            unset($qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
+        }
+
         return empty($qualifiers)
-            ? null
-            : $qualifiers;
+            ? [null, $checksums]
+            : [$qualifiers, $checksums];
     }
 
     /**

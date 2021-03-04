@@ -44,9 +44,8 @@ use DomainException;
  * @psalm-type TName = non-empty-string
  * @psalm-type TVersion = non-empty-string|null
  * @psalm-type TQualifiers = null|non-empty-array<non-empty-string, non-empty-string>
+ * @psalm-type TChecksums = null|non-empty-list<string>
  * @psalm-type TSubpath = non-empty-string|null
- *
- * @TODO add checksum as array of string
  *
  * @author jkowalleck
  */
@@ -82,6 +81,11 @@ class PackageUrl
      * @psalm-var TQualifiers
      */
     private $qualifiers;
+
+    /**
+     * @var TChecksums
+     */
+    private $checksums;
 
     /**
      * @psalm-var TSubpath
@@ -180,11 +184,34 @@ class PackageUrl
 
     /**
      * @psalm-param TQualifiers $qualifiers
+     * @throws DomainException if checksums are part of the qualifiers. Use setChecksums() to set these.
      * @psalm-return $this
      */
     public function setQualifiers(?array $qualifiers): self
     {
+        if ($qualifiers && array_key_exists(self::CHECKSUM_QUALIFIER, $qualifiers)) {
+            throw new DomainException('Checksums must not be part of the qualifiers. Use setChecksums().');
+        }
         $this->qualifiers = $qualifiers;
+
+        return $this;
+    }
+
+    /**
+     * @psalm-return TChecksums
+     */
+    public function getChecksums(): ?array
+    {
+        return $this->checksums;
+    }
+
+    /**
+     * @psalm-param TChecksums $checksums
+     * @psalm-return $this
+     */
+    public function setChecksums(?array $checksums): self
+    {
+        $this->checksums = $checksums;
 
         return $this;
     }
@@ -241,12 +268,17 @@ class PackageUrl
     {
         $builder = $builder ?? new PackageUrlBuilder();
 
+        $qualifiers = $this->qualifiers ?? [];
+        if ($this->checksums) {
+            $qualifiers[self::CHECKSUM_QUALIFIER] = $this->checksums;
+        }
+
         return $builder->build(
             $this->type,
             $this->namespace,
             $this->name,
             $this->version,
-            $this->qualifiers,
+            $qualifiers,
             $this->subpath
         );
     }
@@ -287,10 +319,13 @@ class PackageUrl
             throw new DomainException('Name must not be empty');
         }
 
+        [$qualifiers, $checksums] = $parser->normalizeQualifiers($qualifiers);
+
         return (new static($type, $name))
             ->setNamespace($parser->normalizeNamespace($namespace, $type))
             ->setVersion($parser->normalizeVersion($version))
-            ->setQualifiers($parser->normalizeQualifiers($qualifiers))
+            ->setQualifiers($qualifiers)
+            ->setChecksums($checksums)
             ->setSubpath($parser->normalizeSubpath($subpath));
     }
 }
