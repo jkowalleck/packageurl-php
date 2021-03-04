@@ -36,6 +36,8 @@ namespace PackageUrl;
 use DomainException;
 
 /**
+ * @internal this is not guaranteed to stay backwards compatible
+ *
  * @author jkowalleck
  */
 class PackageUrlBuilder

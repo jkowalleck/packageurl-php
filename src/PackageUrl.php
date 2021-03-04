@@ -184,6 +184,7 @@ class PackageUrl
 
     /**
      * @psalm-param TQualifiers $qualifiers
+     *
      * @throws DomainException if checksums are part of the qualifiers. Use setChecksums() to set these.
      * @psalm-return $this
      */
@@ -211,7 +212,7 @@ class PackageUrl
      */
     public function setChecksums(?array $checksums): self
     {
-        $this->checksums = $checksums;
+        $this->checksums = null === $checksums ? null : array_values($checksums);
 
         return $this;
     }

@@ -54,6 +54,7 @@ class PackageUrlTest extends TestCase
             ->setNamespace($randomString)
             ->setType($randomString)
             ->setQualifiers([$randomString => $randomString])
+            ->setChecksums(['md5:'.$randomString])
             ->setSubpath($randomString);
     }
 
@@ -146,6 +147,25 @@ class PackageUrlTest extends TestCase
         $qualifiers = ['v'.bin2hex(random_bytes(32)) => 'k'.bin2hex(random_bytes(32))];
         $this->sut->setQualifiers($qualifiers);
         self::assertEquals($qualifiers, $this->sut->getQualifiers());
+    }
+
+    public function testQualifiersSetterWithChecksums(): void
+    {
+        $qualifiers = ['checksum' => 'md5:'.bin2hex(random_bytes(32))];
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/checksum/i');
+        $this->sut->setQualifiers($qualifiers);
+    }
+
+    // endregion Qualifiers setter&getter
+
+    // region Qualifiers setter&getter
+
+    public function testChecksumsSetterGetter(): void
+    {
+        $checksums = ['md5:'.bin2hex(random_bytes(32))];
+        $this->sut->setChecksums($checksums);
+        self::assertEquals($checksums, $this->sut->getChecksums());
     }
 
     // endregion Qualifiers setter&getter
@@ -260,7 +280,7 @@ class PackageUrlTest extends TestCase
         );
         $parser->method('normalizeVersion')->with($purlParsed['version'])->willReturn($purlNormalized['version']);
         $parser->method('normalizeQualifiers')->with($purlParsed['qualifiers'])->willReturn(
-            $purlNormalized['qualifiers']
+            [$purlNormalized['qualifiers'], null]
         );
         $parser->method('normalizeSubpath')->with($purlParsed['subpath'])->willReturn($purlNormalized['subpath']);
         // act
@@ -283,7 +303,7 @@ class PackageUrlTest extends TestCase
             'namespace' => null,
             'name' => null,
             'version' => null,
-            'qualifiers' => null,
+            'qualifiers' => [null, null],
             'subpath' => null,
         ];
     }
@@ -305,13 +325,15 @@ class PackageUrlTest extends TestCase
     {
         $expected = bin2hex(random_bytes(32));
         $builder = $this->createMock(PackageUrlBuilder::class);
+        $qualifiers = $this->sut->getQualifiers();
+        $qualifiers['checksum'] = $this->sut->getChecksums();
         $builder->expects(self::once())->method('build')
             ->with(
                 $this->sut->getType(),
                 $this->sut->getName(),
                 $this->sut->getNamespace(),
                 $this->sut->getVersion(),
-                $this->sut->getQualifiers(),
+                $qualifiers,
                 $this->sut->getSubpath()
             )
             ->willReturn($expected);

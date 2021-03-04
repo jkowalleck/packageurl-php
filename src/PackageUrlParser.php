@@ -37,6 +37,8 @@ namespace PackageUrl;
  * A purl is a package URL as defined at
  * {@link https://github.com/package-url/purl-spec}.
  *
+ * @internal this is not guaranteed to stay backwards compatible
+ *
  * @psalm-import-type TType from PackageUrl
  * @psalm-import-type TNamespace from PackageUrl
  * @psalm-import-type TName from PackageUrl
@@ -46,8 +48,6 @@ namespace PackageUrl;
  * @psalm-import-type TSubpath from PackageUrl
  *
  * @author jkowalleck
- *
- * @TODO addd proper types from model
  */
 class PackageUrlParser
 {
@@ -241,12 +241,10 @@ class PackageUrlParser
             $qualifiers[$key] = $value;
         }
 
-        if (isset($qualifiers[PackageUrl::CHECKSUM_QUALIFIER])) {
-            $checksums = null;
-        } else {
-            $checksums = explode(',', $qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
-            unset($qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
-        }
+        $checksums = empty($qualifiers[PackageUrl::CHECKSUM_QUALIFIER])
+            ? null
+            : explode(',', $qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
+        unset($qualifiers[PackageUrl::CHECKSUM_QUALIFIER]);
 
         return empty($qualifiers)
             ? [null, $checksums]

@@ -31,6 +31,7 @@ declare(strict_types=1);
  * for support and download.
  */
 
+// @TODO reformat this stuff
 $header = <<<'EOHH'
     Copyright (c) the purl authors
     SPDX-License-Identifier: MIT

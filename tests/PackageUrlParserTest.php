@@ -112,12 +112,11 @@ class PackageUrlParserTest extends TestCase
 
     /**
      * @dataProvider dpNormalizeQualifiers
-     * @dataProvider \PackageUrl\Tests\_data\MiscProvider::stringsEmptyAndNull
      */
-    public function testNormalizeQualifiers(?string $input, ?array $expectedOutcome): void
+    public function testNormalizeQualifiers(?string $input, ?array $expectedQualifiers): void
     {
         $normalized = $this->sut->normalizeQualifiers($input);
-        self::assertSame($expectedOutcome, $normalized);
+        self::assertSame($expectedQualifiers, $normalized);
     }
 
     /**
@@ -146,12 +145,14 @@ class PackageUrlParserTest extends TestCase
         ];
 
         $parsed = $this->sut->parse($data['purl']);
+        [$normalizedQualifiers, $normalizedChecksums] = $this->sut->normalizeQualifiers($parsed['qualifiers']);
+
         $normalized = [
             'type' => $this->sut->normalizeType($parsed['type']),
             'namespace' => $this->sut->normalizeNamespace($parsed['namespace'], $parsed['type']),
             'name' => $this->sut->normalizeName($parsed['name'], $parsed['type']),
             'version' => $this->sut->normalizeVersion($parsed['version']),
-            'qualifiers' => $this->sut->normalizeQualifiers($parsed['qualifiers']),
+            'qualifiers' => $normalizedQualifiers,
             'subpath' => $this->sut->normalizeSubpath($parsed['subpath']),
         ];
 
@@ -183,17 +184,17 @@ class PackageUrlParserTest extends TestCase
         yield 'encoded string' => ['some%20%22encoded%22%20string', 'some "encoded" string'];
     }
 
-    /**
-     * @psalm-return Generator<non-empty-string, array{string, array<string, string>}>
-     */
     public static function dpNormalizeQualifiers(): Generator
     {
-        yield 'some empty value' => ['k=', null];
-        yield 'some none value' => ['k', null];
-        yield 'some kv' => ['k=v', ['k' => 'v']];
-        yield 'some KV' => ['K=V', ['k' => 'V']];
-        yield 'some encoded value' => ['k=a%20value', ['k' => 'a value']];
-        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', ['k1' => 'v1', 'k2' => 'v2']];
+        yield 'null' => [null, [null, null]];
+        yield 'empty' => ['', [null, null]];
+        yield 'some empty value' => ['k=', [null, null]];
+        yield 'some none value' => ['k', [null, null]];
+        yield 'some kv' => ['k=v', [['k' => 'v'], null]];
+        yield 'some KV' => ['K=V', [['k' => 'V'], null]];
+        yield 'some encoded value' => ['k=a%20value', [['k' => 'a value'], null]];
+        yield 'multiple KVs' => ['k1=v1&k2=v2&k3=&k4', [['k1' => 'v1', 'k2' => 'v2'], null]];
+        yield 'checksums' => ['checksum=foo:bar', [null, ['foo:bar']]];
     }
 
     /**
