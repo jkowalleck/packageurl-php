@@ -47,7 +47,7 @@ class PackageUrlBuilder
      * @psalm-param string|null $namespace
      * @psalm-param string $name
      * @psalm-param string|null $version
-     * @psalm-param mixed[]|null $qualifiers
+     * @psalm-param mixed[]|null $qualifiers can handle "checksum" as string or list of strings.
      * @psalm-param string|null $subpath
      *
      * @throws DomainException if type is empty
@@ -155,6 +155,8 @@ class PackageUrlBuilder
     }
 
     /**
+     * Can handle "checksum" as string or list of strings.
+     *
      * @psalm-param mixed[]|null $data
      * @psalm-return non-empty-string|null
      */
