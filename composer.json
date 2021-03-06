@@ -37,8 +37,8 @@
         }
     },
     "scripts": {
-        "test:psalm": "@php tools/psalm" ,
-        "test:phpunit": "phpunit",
+        "test:psalm": "@php tools/psalm",
+        "test:phpunit": "@php -c phpunit.php.ini vendor/phpunit/phpunit/phpunit",
         "test:cs-fixer": "@php tools/php-cs-fixer fix --dry-run --diff-format=udiff",
         "test:composer-require-checker": "@php tools/composer-require-checker",
         "test:composer-unused": "@php tools/composer-unused",
