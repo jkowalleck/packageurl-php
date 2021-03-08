@@ -110,10 +110,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          tools: phive, composer
           coverage: none
+      - name: Install tools
+        run: phive install
       - name: Install dependencies
         run: >
-          php ./tools/composer
+          composer
           update
           --prefer-stable
           --prefer-dist
@@ -147,7 +150,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: phive
           coverage: none
+      - name: Install tools
+        run: phive install
       - name: Run PHP-CS-Fixer tests
         run: >
           php ./tools/php-cs-fixer
@@ -170,10 +176,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: phive, composer
           coverage: none
+      - name: Install tools
+        run: phive install
       - name: Install dependencies
         run: >
-          php ./tools/composer
+          composer
           update
           --prefer-stable
           --prefer-dist
@@ -195,10 +204,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: phive, composer
           coverage: none
+      - name: Install tools
+        run: phive install
       - name: Install dependencies
         run: >
-          php ./tools/composer
+          composer
           update
           --prefer-stable
           --prefer-dist
