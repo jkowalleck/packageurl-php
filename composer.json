@@ -23,7 +23,7 @@
     },
     "require-dev": {
         "ext-json": "*",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "9.5.2",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {
