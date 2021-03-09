@@ -58,7 +58,6 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: >
           composer validate
-          --with-dependencies
           --no-interaction
       - name: Install dependencies
         run: >
@@ -89,13 +88,13 @@ jobs:
           name: ${{ env.REPORTS_ARTIFACT }}
           path: ${{ env.REPORTS_DIR }}
           if-no-files-found: error
-  type-checker:
+  code-checker:
     name: Code analysis (php${{ matrix.php }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       REPORTS_DIR: CI_reports
-      REPORTS_ARTIFACT: types-reports
+      REPORTS_ARTIFACT: code-reports
     strategy:
       fail-fast: false
       matrix:
@@ -122,6 +121,7 @@ jobs:
       - name: Install dependencies
         run: >
           composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
@@ -163,6 +163,14 @@ jobs:
           --no-interaction
           --no-progress
           --no-suggest
+      - name: Install dependencies
+        run: >
+          composer update
+          --no-dev
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
       - name: Run PHP-CS-Fixer tests
         run: >
           php tools/php-cs-fixer/vendor/friendsofphp/php-cs-fixer/php-cs-fixer
@@ -197,8 +205,8 @@ jobs:
           --no-suggest
       - name: Install dependencies
         run: >
-          composer
-          update
+          composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
@@ -232,8 +240,8 @@ jobs:
           --no-suggest
       - name: Install dependencies
         run: >
-          composer
-          update
+          composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
