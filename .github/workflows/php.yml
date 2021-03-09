@@ -63,7 +63,6 @@ jobs:
       - name: Install dependencies
         run: >
           composer update
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -116,7 +115,6 @@ jobs:
         run: >
           composer install
           -dtools/psalm
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -124,7 +122,6 @@ jobs:
       - name: Install dependencies
         run: >
           composer update
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -162,7 +159,6 @@ jobs:
         run: >
           composer install
           -dtools/php-cs-fixer
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -195,7 +191,6 @@ jobs:
         run: >
           composer install
           -dtools/composer-require-checker
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -204,7 +199,6 @@ jobs:
         run: >
           composer
           update
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -232,7 +226,6 @@ jobs:
         run: >
           composer install
           -dtools/composer-unused
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -241,7 +234,6 @@ jobs:
         run: >
           composer
           update
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
