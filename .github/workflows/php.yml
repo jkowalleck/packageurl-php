@@ -130,6 +130,7 @@ jobs:
         run: >
           php tools/psalm/vendor/vimeo/psalm/psalm
           --no-diff
+          --no-cache
           --long-progress
           --report=${{ env.REPORTS_DIR }}/psalm.php${{ matrix.php }}.junit.xml
       - name: Artifact reports
