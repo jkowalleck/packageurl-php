@@ -2,7 +2,7 @@
     "name": "package-url/packageurl-php",
     "description": "PHP implementation of the package url spec",
     "readme": "README.md",
-    "keywords": ["ackageurl", "purl"],
+    "keywords": ["packageurl", "purl"],
     "license": "MIT",
     "homepage": "https://github.com/package-url/packageurl-php",
     "support": {
@@ -18,6 +18,7 @@
         "preferred-install": "dist",
         "sort-packages": true
     },
+    "prefer-stable": true,
     "require": {
         "php": "^7.3 || ^8.0"
     },
@@ -37,11 +38,18 @@
         }
     },
     "scripts": {
-        "test:psalm": "@php tools/psalm" ,
+        "dev-setup": [
+            "@composer install -dtools/composer-require-checker",
+            "@composer install -dtools/composer-unused",
+            "@composer install -dtools/php-cs-fixer",
+            "@composer install -dtools/psalm",
+            "@composer install"
+        ],
+        "test:composer-require-checker": "@php tools/composer-require-checker/vendor/maglnet/composer-require-checker/bin/composer-require-checker",
+        "test:composer-unused": "@php tools/composer-unused/vendor/icanhazstring/composer-unused/bin/composer-unused",
+        "test:cs-fixer": "@php tools/php-cs-fixer/vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --dry-run --diff-format=udiff",
+        "test:psalm": "@php tools/psalm/vendor/vimeo/psalm/psalm" ,
         "test:phpunit": "phpunit",
-        "test:cs-fixer": "@php tools/php-cs-fixer fix --dry-run --diff-format=udiff",
-        "test:composer-require-checker": "@php tools/composer-require-checker",
-        "test:composer-unused": "@php tools/composer-unused",
         "test": [
             "@composer validate",
             "@test:psalm",
@@ -50,15 +58,16 @@
             "@test:composer-require-checker",
             "@test:composer-unused"
         ],
-        "cs-fix": "@php tools/php-cs-fixer fix --diff-format=udiff"
+        "cs-fix": "@php tools/php-cs-fixer/vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix --diff-format=udiff"
     },
     "scripts-descriptions": {
+        "dev-setup": "Install dev-requirements and tools",
         "test": "Run all tests!",
-        "test:psalm": "Run static code analysis with Psalm.",
-        "test:phpunit": "Run tests with PHPUnit.",
-        "test:cs-fixer": "Test coding standards with PHP-CS-fixer.",
         "test:composer-require-checker": "Test compoer requirements with composer-require-checker.",
         "test:composer-unused": "Test compoer requirements with composer-unused.",
+        "test:cs-fixer": "Test coding standards with PHP-CS-fixer.",
+        "test:psalm": "Run static code analysis with Psalm.",
+        "test:phpunit": "Run tests with PHPUnit.",
         "cs-fix": "Fix files according to coding standards."
     }
 }

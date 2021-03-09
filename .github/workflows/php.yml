@@ -58,12 +58,10 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: >
           composer validate
-          --with-dependencies
           --no-interaction
       - name: Install dependencies
         run: >
           composer update
-          --prefer-stable
           --prefer-dist
           --no-interaction
           --no-progress
@@ -77,7 +75,7 @@ jobs:
           -d error_reporting=-1
           -d log_errors_max_len=0
           -d memory_limit=-1
-          ./vendor/phpunit/phpunit/phpunit
+          vendor/phpunit/phpunit/phpunit
           --log-junit=${{ env.REPORTS_DIR }}/tests.${{ matrix.os }}_php${{ matrix.php }}.junit.xml
           --coverage-clover=${{ env.REPORTS_DIR }}/coverage.${{ matrix.os}}_php${{ matrix.php }}.clover.xml
           --no-interaction
@@ -90,13 +88,13 @@ jobs:
           name: ${{ env.REPORTS_ARTIFACT }}
           path: ${{ env.REPORTS_DIR }}
           if-no-files-found: error
-  type-checker:
+  code-checker:
     name: Code analysis (php${{ matrix.php }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       REPORTS_DIR: CI_reports
-      REPORTS_ARTIFACT: types-reports
+      REPORTS_ARTIFACT: code-reports
     strategy:
       fail-fast: false
       matrix:
@@ -110,20 +108,29 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          tools: composer
           coverage: none
+      - name: Install psalm
+        run: >
+          composer install
+          -dtools/psalm
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
       - name: Install dependencies
         run: >
-          php ./tools/composer
-          update
-          --prefer-stable
+          composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
           --no-suggest
       - name: Run Psalm tests
         run: >
-          php ./tools/psalm
+          php tools/psalm/vendor/vimeo/psalm/psalm
           --no-diff
+          --no-cache
           --long-progress
           --report=${{ env.REPORTS_DIR }}/psalm.php${{ matrix.php }}.junit.xml
       - name: Artifact reports
@@ -147,10 +154,27 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: composer
           coverage: none
+      - name: Install PHP-CS-Fixer
+        run: >
+          composer install
+          -dtools/php-cs-fixer
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
+      - name: Install dependencies
+        run: >
+          composer update
+          --no-dev
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
       - name: Run PHP-CS-Fixer tests
         run: >
-          php ./tools/php-cs-fixer
+          php tools/php-cs-fixer/vendor/friendsofphp/php-cs-fixer/php-cs-fixer
           fix
           --dry-run
           --diff-format=udiff
@@ -170,18 +194,28 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: composer
           coverage: none
+      - name: Install composer-require-checker
+        run: >
+          composer install
+          -dtools/composer-require-checker
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
       - name: Install dependencies
         run: >
-          php ./tools/composer
-          update
-          --prefer-stable
+          composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
           --no-suggest
       - name: Run composer-require-checker tests
-        run: php ./tools/composer-require-checker
+        run: >
+          php tools/composer-require-checker/vendor/maglnet/composer-require-checker/bin/composer-require-checker
+          --no-interaction
   composer-unused:
     name: CompoerUnused
     runs-on: ubuntu-latest
@@ -195,15 +229,26 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.0"
+          tools: composer
           coverage: none
+      - name: Install composer-require-checker
+        run: >
+          composer install
+          -dtools/composer-unused
+          --prefer-dist
+          --no-interaction
+          --no-progress
+          --no-suggest
       - name: Install dependencies
         run: >
-          php ./tools/composer
-          update
-          --prefer-stable
+          composer update
+          --no-dev
           --prefer-dist
           --no-interaction
           --no-progress
           --no-suggest
       - name: Run composer-unused tests
-        run: php ./tools/composer-unused
+        run: >
+          php tools/composer-unused/vendor/icanhazstring/composer-unused/bin/composer-unused
+          --no-progress
+          --no-interaction
