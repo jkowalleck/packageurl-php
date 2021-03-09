@@ -19,9 +19,4 @@
 /.php_cs.dist       export-ignore
 /phpunit.xml.dist   export-ignore
 /psalm.xml.dist     export-ignore
-/CHANGELOG.md       export-ignore
-
-# generated or vendored files
-/.phive/**   linguist-generated
-/tools/*     linguist-vendored binary
-/res/**      linguist-generated
+/HIStORY.md         export-ignore
