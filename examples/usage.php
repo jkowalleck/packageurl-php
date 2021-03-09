@@ -27,26 +27,29 @@ declare(strict_types=1);
  *
  */
 
-$header = file_get_contents(__DIR__.'/LICENSE');
+use PackageUrl\PackageUrl;
 
-$finder = PhpCsFixer\Finder::create()
-    ->in(__DIR__.'/src')
-    ->in(__DIR__.'/tests')
-    ->in(__DIR__.'/examples')
-    ->append([__FILE__])
-;
+require_once __DIR__.'/../vendor/autoload.php';
 
-$config = new PhpCsFixer\Config();
+$purl = (new PackageUrl('maven', 'myartifact'))
+    ->setNamespace('mygroup')
+    ->setVersion('1.0.0 Final')
+    ->setQualifiers(['mykey' => 'my value'])
+    ->setChecksums(['md5:46d2ff0ce36bd553a394e8fa1fa846c7'])
+    ->setSubpath('my/sub/path');
 
-return $config
-    ->setUsingCache(true)
-    ->setRules([
-        '@PHP73Migration' => true,
-        '@Symfony' => true,
-        'declare_strict_types' => true,
-        'phpdoc_order' => true,
-        'header_comment' => ['header' => $header],
-    ])
-    ->setRiskyAllowed(true)
-    ->setFinder($finder)
-;
+$purlString = $purl->toString();
+
+// string(117) "pkg:maven/mygroup/myartifact@1.0.0%20Final?checksum=md5:46d2ff0ce36bd553a394e8fa1fa846c7&mykey=my%20value#my/sub/path"
+var_dump($purlString);
+
+// string(117) "pkg:maven/mygroup/myartifact@1.0.0%20Final?checksum=md5:46d2ff0ce36bd553a394e8fa1fa846c7&mykey=my%20value#my/sub/path"
+var_dump((string) $purl);
+
+$purl2 = PackageUrl::fromString($purlString);
+
+// bool(true)
+var_dump($purl == $purl2);
+
+// bool(false)
+var_dump($purl === $purl2);
